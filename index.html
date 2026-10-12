@@ -9,27 +9,119 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<style>
+/* ===== Home page flash. Motion uses transform/opacity only and is disabled for reduced-motion users. ===== */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;z-index:300;background:linear-gradient(90deg,var(--gold),#fff3b0);transform-origin:0 50%;transform:scaleX(0);pointer-events:none}
+
+.hero{min-height:min(92vh,880px)}
+.fx{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1}
+.beam{position:absolute;top:-8%;height:125%;width:34vw;min-width:240px;left:var(--x);
+  background:linear-gradient(180deg,rgba(255,244,200,.32),rgba(255,244,200,.06) 65%,transparent);
+  clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);transform-origin:50% 0;
+  animation:sway var(--d,9s) ease-in-out infinite alternate;animation-delay:var(--delay,0s)}
+@keyframes sway{from{transform:rotate(-13deg)}to{transform:rotate(13deg)}}
+.court-art{position:absolute;right:-12%;top:50%;width:min(780px,95vw);aspect-ratio:1;margin-top:calc(min(780px,95vw)/-2);opacity:.14;animation:spin 90s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spark{position:absolute;bottom:-12px;left:var(--x);width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle,#fff3b0,var(--gold) 60%,transparent 70%);opacity:0;animation:rise var(--t) linear infinite;animation-delay:var(--dl)}
+@keyframes rise{0%{transform:translate3d(0,0,0);opacity:0}10%{opacity:.9}100%{transform:translate3d(var(--dx),-85vh,0);opacity:0}}
+
+.hero h1 .w{display:inline-block;opacity:0;transform:translateY(40px) rotateX(35deg);background:linear-gradient(180deg,#fff 30%,#c9b3b9);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:pop .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--i)*110ms + 150ms)}
+@keyframes pop{to{opacity:1;transform:none}}
+.hero h1 em.shine{filter:drop-shadow(0 4px 18px rgba(242,183,5,.35))}
+.hero h1 em.shine .w{background:linear-gradient(100deg,#e0a800 25%,#fff6c4 45%,#f2b705 55%,#e0a800 75%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;animation:pop .7s cubic-bezier(.2,.8,.2,1) forwards,shine 4.5s linear infinite;animation-delay:calc(var(--i)*110ms + 150ms),0s}
+@keyframes shine{from{background-position:120% 0}to{background-position:-120% 0}}
+.hero .kicker{animation:fadeup .8s ease-out both}
+.hero .sub,.hero .cta{animation:fadeup .8s ease-out .6s both}
+@keyframes fadeup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.btn.pulse{position:relative}
+.btn.pulse::after{content:"";position:absolute;inset:-2px;border:2px solid var(--gold);opacity:0;animation:ring 2.4s ease-out infinite;pointer-events:none}
+@keyframes ring{0%{opacity:.8;transform:scale(1)}100%{opacity:0;transform:scale(1.18,1.5)}}
+
+.rightcol{display:grid;gap:22px;justify-items:stretch}
+.ring{display:none;justify-self:center;position:relative;width:190px;height:190px;animation:float 5s ease-in-out infinite}
+@media(min-width:900px){.ring{display:block}}
+.ring::before{content:"";position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(from 0deg,var(--gold),transparent 30%,#fff3b0 55%,transparent 80%,var(--gold));animation:spin 6s linear infinite}
+.ring .face{position:absolute;inset:0;border-radius:50%;background:#fff;display:grid;place-items:center;border:4px solid var(--maroon-d);box-shadow:0 14px 40px rgba(0,0,0,.4),0 0 40px rgba(242,183,5,.35)}
+.ring img{width:78%;height:auto}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+.count strong{text-shadow:0 0 14px rgba(242,183,5,.45)}
+
+/* marquee band */
+.marquee-wrap{position:relative;z-index:3;overflow:hidden;margin-top:-30px;padding:26px 0 18px;pointer-events:none}
+.marquee{position:relative;z-index:3;background:#fff;color:var(--maroon);overflow:hidden;border-block:4px solid var(--gold);transform:rotate(-1.2deg);margin:0 -20px;padding:12px 0;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.marquee .track{display:flex;width:max-content;animation:scroll 28s linear infinite}
+.marquee span{font-family:var(--head);font-weight:800;font-size:clamp(1.3rem,3vw,2rem);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;padding-right:1.4em}
+.marquee i{font-style:normal;color:var(--maroon);padding:0 .9em}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* tiles + cards: shine sweep */
+.tile::before{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(242,183,5,.35),transparent);transform:skewX(-20deg) translateX(0);transition:transform .7s ease;pointer-events:none}
+.tile:hover::before{transform:skewX(-20deg) translateX(520%)}
+.tile svg{transition:transform .3s}
+.tile:hover svg{transform:scale(1.18) rotate(-6deg)}
+.pcard .pphoto{transition:transform .4s}
+.pcard:hover .pphoto{transform:scale(1.04)}
+.pcard{overflow:hidden}
+.ncard:hover{transform:translateY(-4px)}
+.ncard{transition:transform .25s,border-color .2s}
+
+/* section headings: animated gold underline */
+.sec-head h2{position:relative;padding-bottom:10px}
+.sec-head h2::after{content:"";position:absolute;left:0;bottom:0;height:4px;width:72px;background:linear-gradient(90deg,var(--gold),var(--maroon));transform-origin:0 50%;animation:grow 1s ease-out both;animation-timeline:view();animation-range:entry 0% cover 40%}
+@keyframes grow{from{transform:scaleX(.1)}to{transform:scaleX(1)}}
+
+/* legacy numbers: bigger and punchier */
+.stat strong{font-size:3.4rem;background:linear-gradient(180deg,var(--maroon),var(--maroon-d));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat div{transition:transform .25s,border-color .2s}
+.stat div:hover{transform:translateY(-4px);border-color:var(--gold)}
+
+@media(prefers-reduced-motion:reduce){
+  .hero h1 .w,.hero .kicker,.hero .sub,.hero .cta{opacity:1;transform:none}
+  .marquee .track{transform:none;flex-wrap:wrap;width:auto}
+  .marquee .dup{display:none}
+  .beam,.spark,.court-art,.ring,.ring::before{animation:none}
+  .spark{display:none}
+  .progress{display:none}
+}
+</style>
 </head>
 <body data-page="home">
 
 <main id="main">
   <section class="hero">
+    <div class="fx" aria-hidden="true">
+      <i class="beam" style="--x:-6%;--d:9s;--delay:-2s"></i>
+      <i class="beam" style="--x:30%;--d:11s;--delay:-6s"></i>
+      <i class="beam" style="--x:62%;--d:8s;--delay:-4s"></i>
+      <svg class="court-art" viewBox="0 0 200 200" fill="none" stroke="#fff" stroke-width="1.2"><circle cx="100" cy="100" r="96"/><circle cx="100" cy="100" r="60"/><circle cx="100" cy="100" r="22"/><path d="M100 4v192M4 100h192"/><path d="M30 30a100 100 0 0 1 140 0M30 170a100 100 0 0 0 140 0" opacity=".6"/></svg>
+      <div id="sparks"></div>
+    </div>
     <div class="wrap">
       <div>
         <p class="kicker">Strength. Pride. Tradition.</p>
-        <h1>Home of the <em>Lady Indians</em></h1>
+        <h1><span class="w" style="--i:0">Home</span> <span class="w" style="--i:1">of</span> <span class="w" style="--i:2">the</span> <em class="shine"><span class="w" style="--i:3">Lady</span> <span class="w" style="--i:4">Indians</span></em></h1>
         <p class="sub">Millersburg Area High School girls basketball. Follow the schedule, meet the roster and get the latest from the Millersburg, PA program.</p>
         <div class="cta">
-          <a class="btn" href="schedule.html">Full Schedule</a>
+          <a class="btn pulse" href="schedule.html">Full Schedule</a>
           <a class="btn ghost" href="roster.html">Meet the Team</a>
         </div>
       </div>
-      <aside class="nextcard" aria-labelledby="nm-h">
-        <h2 id="nm-h">Next Game</h2>
-        <div id="nextgame"></div>
-      </aside>
+      <div class="rightcol">
+        <div class="ring" aria-hidden="true"><div class="face"><img src="images/logo.png" alt=""></div></div>
+        <aside class="nextcard" aria-labelledby="nm-h">
+          <h2 id="nm-h">Next Game</h2>
+          <div id="nextgame"></div>
+        </aside>
+      </div>
     </div>
   </section>
+
+  <div class="marquee-wrap"><div class="marquee" aria-hidden="true"><div class="track">
+    <span>Strength<i>&#9670;</i>Pride<i>&#9670;</i>Tradition<i>&#9670;</i>Go Indians<i>&#9670;</i>All In<i>&#9670;</i>Strength<i>&#9670;</i>Pride<i>&#9670;</i>Tradition<i>&#9670;</i>Go Indians<i>&#9670;</i>All In<i>&#9670;</i></span>
+    <span class="dup">Strength<i>&#9670;</i>Pride<i>&#9670;</i>Tradition<i>&#9670;</i>Go Indians<i>&#9670;</i>All In<i>&#9670;</i>Strength<i>&#9670;</i>Pride<i>&#9670;</i>Tradition<i>&#9670;</i>Go Indians<i>&#9670;</i>All In<i>&#9670;</i></span>
+  </div></div></div>
 
   <section class="band">
     <div class="wrap">
@@ -157,6 +249,44 @@
     leg={stats:[],story:'',edited:true}; LI.save('legacy',leg); dlg.close(); draw();
   };
   draw();
+})();
+</script>
+<script>
+(function(){
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* scroll progress bar */
+  var bar=document.createElement('div'); bar.className='progress'; bar.setAttribute('aria-hidden','true'); document.body.appendChild(bar);
+  var tick=false;
+  function upd(){ var h=document.documentElement; var max=h.scrollHeight-h.clientHeight; bar.style.transform='scaleX('+(max>0?Math.min(1,h.scrollTop/max):0)+')'; tick=false; }
+  addEventListener('scroll',function(){ if(!tick){ tick=true; requestAnimationFrame(upd); } },{passive:true}); upd();
+
+  /* rising gold sparks */
+  if(!reduce){
+    var box=document.getElementById('sparks'), n=innerWidth<700?10:22, html='';
+    for(var i=0;i<n;i++){
+      var s=(3+Math.random()*5).toFixed(1);
+      html+='<i class="spark" style="--x:'+(Math.random()*100).toFixed(1)+'%;--s:'+s+'px;--t:'+(7+Math.random()*8).toFixed(1)+'s;--dl:-'+(Math.random()*12).toFixed(1)+'s;--dx:'+((Math.random()-.5)*160).toFixed(0)+'px"></i>';
+    }
+    box.innerHTML=html;
+  }
+
+  /* count-up for plain numbers in Our Legacy (runs once per number, when scrolled into view) */
+  var legacy=document.getElementById('legstats');
+  function countUp(el){
+    var raw=el.textContent.trim(), target=parseInt(raw,10);
+    if(!/^[0-9]+$/.test(raw)||target>=1000||reduce) return;
+    var t0=performance.now(), dur=1200;
+    el.textContent='0';
+    (function step(now){ var p=Math.max(0,Math.min(1,(now-t0)/dur)), e=1-Math.pow(1-p,3); el.textContent=Math.round(target*e); if(p<1) requestAnimationFrame(step); else el.textContent=target; })(t0);
+  }
+  function checkCount(){
+    if(!legacy) return;
+    var r=legacy.getBoundingClientRect();
+    if(r.top>innerHeight*.85||r.bottom<0) return;
+    legacy.querySelectorAll('strong:not([data-c])').forEach(function(s){ s.setAttribute('data-c','1'); countUp(s); });
+  }
+  addEventListener('scroll',checkCount,{passive:true}); checkCount();
 })();
 </script>
 </body>

@@ -115,7 +115,7 @@ window.PlayView = (function () {
     var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches, last = -1;
     function frame(now) {
       if (stopped) return;
-      var el = now - t0, seg = Math.floor(el / (dur + gap));
+      var el = Math.max(0, now - t0), seg = Math.floor(el / (dur + gap));
       if (seg >= n) { stopped = true; if (opts.onDone) opts.onDone(); return; }
       var local = el - seg * (dur + gap), t = Math.min(1, local / dur);
       if (reduce) t = local < dur / 2 ? 0 : 1;
