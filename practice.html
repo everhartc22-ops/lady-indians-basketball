@@ -22,6 +22,16 @@
   .rem li.done label{text-decoration:line-through;color:var(--muted)}
   .remadd{display:flex;gap:8px}
   .remadd input{flex:1}
+  .printhead{display:none}
+  @media print{
+    .pagehead{display:none!important}
+    .printhead{display:flex;align-items:center;gap:16px;padding-bottom:12px;margin-bottom:16px;border-bottom:3px solid #7a0c24;color:#000}
+    .printhead img{height:72px;width:auto}
+    .printhead .team{font-family:var(--head);font-size:1.9rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;line-height:1;color:#7a0c24}
+    .printhead .sub{font-size:.95rem;color:#333;margin-top:4px}
+    .printhead .ptitle{font-family:var(--head);font-size:1.4rem;font-weight:700;text-transform:uppercase;margin-top:6px;color:#000}
+    .designer{display:block!important}
+  }
   @media print{.qotd{border-color:#444;background:#fff}.qotd .lbl{color:#000}.rem li{background:#fff;border-color:#999}}
 </style>
 <script>window.LI_GATED=true</script>
@@ -32,6 +42,14 @@
   <div class="pagehead"><div class="wrap"><h1>Practice <span>Planner</span></h1><p>Build a timed plan from your drill library. Plans save in this browser and can be printed.</p></div></div>
   <section class="band"><div class="wrap designer" style="align-items:start">
     <div class="panel">
+      <div class="printhead" id="printhead">
+        <img src="images/logo.png" alt="Millersburg Lady Indians logo">
+        <div>
+          <div class="team">Millersburg Lady Indians Basketball</div>
+          <div class="sub" id="phsub"></div>
+          <div class="ptitle" id="phtitle"></div>
+        </div>
+      </div>
       <section class="qotd" aria-labelledby="qlbl">
         <div class="lbl" id="qlbl">Quote of the Day</div>
         <blockquote id="qtext"></blockquote>
@@ -196,6 +214,14 @@
   document.getElementById('rem').addEventListener('change',function(e){var i=e.target.dataset.r; if(i===undefined) return; rems[+i].done=e.target.checked; drawRem();});
   document.getElementById('rem').addEventListener('click',function(e){var i=e.target.dataset.rr; if(i===undefined) return; rems.splice(+i,1); drawRem();});
   document.getElementById('remclear').onclick=function(){rems=rems.filter(function(r){return !r.done}); drawRem();};
+
+  /* Print header (logo, team, title, date) */
+  function fillPrintHead(){
+    var d=document.getElementById('date').value, dt=d?new Date(d+'T12:00:00'):null;
+    document.getElementById('phtitle').textContent=document.getElementById('title').value.trim()||'Practice Plan';
+    document.getElementById('phsub').textContent=(dt?dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}):'')+' \u00B7 Start '+fmt(startMin());
+  }
+  window.addEventListener('beforeprint',fillPrintHead);
 
   draw(); lists(); drawRem(); showQuote();
 })();
