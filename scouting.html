@@ -8,6 +8,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<style>
+  .sharebox{margin-top:16px;padding:14px;background:#fff4cf;border:1px solid var(--gold-d);color:#3d2d00}
+  .sharebox input{margin:8px 0}
+  .sharebox .acts{display:flex;gap:8px;flex-wrap:wrap}
+</style>
 </head>
 <body data-page="scouting">
 <main id="main">
@@ -31,7 +36,15 @@
       <div class="field"><label for="off">Offensive tendencies &amp; sets</label><textarea id="off"></textarea></div>
       <div class="field"><label for="de">Defensive tendencies</label><textarea id="de"></textarea></div>
       <div class="field"><label for="keys">Keys to the game</label><textarea id="keys"></textarea></div>
-      <div class="toolbar noprint"><button class="btn" type="submit">Save report</button><button class="btn ghost" type="button" id="print">Print</button><button class="btn ghost" type="button" id="newr">New report</button></div>
+      <div class="toolbar noprint"><button class="btn" type="submit">Save report</button><button class="btn ghost" type="button" id="print">Print</button><button class="btn ghost" type="button" id="newr">New report</button><button class="btn ghost" type="button" id="share" aria-controls="sharebox">Share</button></div>
+      <div class="sharebox noprint" id="sharebox" style="display:none">
+        <b id="sharetitle">Share this report</b>
+        <p style="margin:6px 0 4px;font-size:.9rem">Send it as a link, or copy it as plain text to paste into a text message or email.</p>
+        <label for="sharelink" class="sr">Report link</label>
+        <input id="sharelink" readonly>
+        <div class="acts"><button class="btn sm" type="button" id="copylink">Copy link</button><button class="btn sm ghost" type="button" id="copytext">Copy as text</button><a class="btn sm ghost" id="openlink" href="#" target="_blank" rel="noopener">Open report page</a></div>
+        <p style="margin:10px 0 0;font-size:.88rem" id="sharenote" role="status" aria-live="polite"></p>
+      </div>
     </form>
     <div class="panel noprint">
       <h2>Saved reports</h2>
@@ -41,6 +54,7 @@
 </main>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
+<script src="js/playview.js"></script>
 <script>
 (function(){
   var E=LI.esc, reports=LI.load('scouting',[]), curId=null;
@@ -54,7 +68,7 @@
 
   function clear(){curId=null;ids.forEach(function(i){var e=document.getElementById(i);e.value=e.tagName==='SELECT'?e.options[0].value:'';});setPlayers();}
   function list(){
-    document.getElementById('list').innerHTML=reports.length?reports.map(function(r){return '<li><span>'+E(r.v.opp)+' <small style="color:var(--muted)">'+E(r.v.gd||'')+'</small></span><button class="btn sm ghost" data-open="'+r.id+'">Open</button><button class="btn sm danger" data-del="'+r.id+'" aria-label="Delete '+E(r.v.opp)+'">Delete</button></li>';}).join(''):'<li class="empty" style="border:none;background:none">No saved reports.</li>';
+    document.getElementById('list').innerHTML=reports.length?reports.map(function(r){return '<li><span>'+E(r.v.opp)+' <small style="color:var(--muted)">'+E(r.v.gd||'')+'</small></span><button class="btn sm ghost" data-open="'+r.id+'">Open</button><button class="btn sm ghost" data-share="'+r.id+'">Share</button><button class="btn sm danger" data-del="'+r.id+'" aria-label="Delete '+E(r.v.opp)+'">Delete</button></li>';}).join(''):'<li class="empty" style="border:none;background:none">No saved reports.</li>';
   }
   document.getElementById('list').addEventListener('click',function(e){
     var o=e.target.dataset.open,d=e.target.dataset.del;
@@ -70,6 +84,52 @@
   });
   document.getElementById('newr').onclick=clear;
   document.getElementById('print').onclick=function(){window.print();};
+
+  /* ---------- Sharing ---------- */
+  function currentReport(){
+    var v={}; ids.forEach(function(i){v[i]=document.getElementById(i).value;});
+    return {v:v,players:getPlayers()};
+  }
+  function fmtDate(s){ if(!s) return ''; var d=new Date(s+'T12:00:00'); return isNaN(d)?s:d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}); }
+  function asText(r){
+    var v=r.v, L=[];
+    L.push('SCOUTING REPORT: '+(v.opp||'Opponent').toUpperCase());
+    var facts=[]; if(v.gd) facts.push('Game: '+fmtDate(v.gd)); if(v.rec) facts.push('Record: '+v.rec); if(v.pace) facts.push('Pace: '+v.pace); if(v.defn) facts.push('Defense: '+v.defn);
+    if(facts.length) L.push(facts.join(' | '));
+    if(r.players.length){ L.push('','KEY PLAYERS'); r.players.forEach(function(p){
+      L.push('#'+(p.n||'?')+(p.name?' '+p.name:'')+(p.s?' - Strengths: '+p.s:'')+(p.w?' - Weaknesses: '+p.w:'')); }); }
+    [['OFFENSE',v.off],['DEFENSE',v.de],['KEYS TO THE GAME',v.keys]].forEach(function(s){ if(s[1]&&s[1].trim()) L.push('',s[0],s[1].trim()); });
+    L.push('','Millersburg Lady Indians Basketball');
+    return L.join('\n');
+  }
+  var shared=null, sbox=document.getElementById('sharebox'), snote=document.getElementById('sharenote');
+  function copy(text,okMsg){
+    function fallback(){ try{ var t=document.createElement('textarea'); t.value=text; t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t); t.select(); var ok=document.execCommand('copy'); t.remove(); snote.textContent=ok?okMsg:'Could not copy. Select the link and press Ctrl+C.'; }catch(e){ snote.textContent='Could not copy. Select the link and press Ctrl+C.'; } }
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function(){snote.textContent=okMsg;},fallback); else fallback();
+  }
+  async function openShare(r){
+    if(!r.v.opp||!r.v.opp.trim()){ alert('Enter an opponent name before sharing.'); document.getElementById('opp').focus(); return; }
+    shared=r;
+    try{
+      var code=await PlayView.encode(r), link=new URL('scouting-report.html',location.href).href+'#d='+code;
+      document.getElementById('sharetitle').textContent='Share: '+r.v.opp;
+      document.getElementById('sharelink').value=link; document.getElementById('openlink').href=link;
+      var local=/^(file:|http:\/\/(localhost|127\.))/.test(location.href), n=[];
+      if(local) n.push('The link only works once the site is online. Until then, use Copy as text.');
+      if(link.length>6000) n.push('This link is long ('+link.length+' characters) and some apps may cut it off. Use Copy as text instead.');
+      n.push('Anyone with the link can read this report. If you edit it, share again.');
+      snote.textContent=n.join(' '); sbox.style.display='';
+      sbox.scrollIntoView({block:'nearest'});
+    }catch(e){ alert('Could not create the link in this browser. Use Copy as text instead.'); shared=r; sbox.style.display=''; }
+  }
+  document.getElementById('share').onclick=function(){ openShare(currentReport()); };
+  document.getElementById('list').addEventListener('click',function(e){
+    var id=e.target.dataset.share; if(!id) return;
+    var rec=reports.filter(function(x){return x.id===id})[0]; if(rec) openShare({v:rec.v,players:rec.players||[]});
+  });
+  document.getElementById('copylink').onclick=function(){ copy(document.getElementById('sharelink').value,'Link copied.'); };
+  document.getElementById('copytext').onclick=function(){ if(shared) copy(asText(shared),'Report copied as text. Paste it into a message or email.'); };
+
   list();
 })();
 </script>

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Scouting Report | Millersburg Lady Indians</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .sr-wrap{max-width:860px}
+  .facts{display:grid;gap:12px;grid-template-columns:repeat(2,1fr);margin-bottom:24px}
+  @media(min-width:700px){.facts{grid-template-columns:repeat(4,1fr)}}
+  .facts div{background:var(--surface);border:1px solid var(--line);padding:12px 14px}
+  .facts span{display:block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .facts strong{font-family:var(--head);font-size:1.4rem;text-transform:uppercase;line-height:1.1}
+  .block2{margin-bottom:26px}
+  .block2 h2{font-size:1.9rem;margin-bottom:10px;padding-bottom:6px;border-bottom:3px solid var(--gold)}
+  .block2 p{margin:0;white-space:pre-wrap}
+  .printhead{display:none}
+  #err{display:none}
+  @media print{
+    .pagehead,.noprint{display:none!important}
+    .printhead{display:flex;align-items:center;gap:16px;padding-bottom:12px;margin-bottom:16px;border-bottom:3px solid #7a0c24;color:#000}
+    .printhead img{height:72px;width:auto}
+    .printhead .team{font-family:var(--head);font-size:1.9rem;font-weight:800;text-transform:uppercase;color:#7a0c24;line-height:1}
+    .printhead .ptitle{font-family:var(--head);font-size:1.4rem;font-weight:700;text-transform:uppercase;margin-top:6px}
+    .facts div{background:#fff;border-color:#999}
+    .block2 h2{border-color:#7a0c24}
+  }
+</style>
+</head>
+<body data-page="scouting">
+<main id="main">
+  <div class="pagehead"><div class="wrap"><h1>Scouting <span>Report</span></h1><p id="sub">Shared by the Lady Indians coaching staff.</p></div></div>
+  <section class="band"><div class="wrap sr-wrap">
+    <div class="panel" id="err"><h2>Report not found</h2><p>This link looks damaged or incomplete. Ask your coach to send it again.</p></div>
+    <article id="report" style="display:none">
+      <div class="printhead">
+        <img src="images/logo.png" alt="Millersburg Lady Indians logo">
+        <div><div class="team">Millersburg Lady Indians Basketball</div><div class="ptitle" id="ptitle"></div></div>
+      </div>
+      <h2 id="rtitle" style="font-size:clamp(2.2rem,6vw,3.6rem);margin-bottom:18px"></h2>
+      <div class="facts" id="facts"></div>
+      <div id="body"></div>
+      <div class="toolbar noprint"><button class="btn sm" id="print" type="button">Print / Save as PDF</button></div>
+    </article>
+  </div></section>
+</main>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/playview.js"></script>
+<script>
+(async function(){
+  var E=LI.esc;
+  function $(i){return document.getElementById(i)}
+  var m=location.hash.match(/^#d=(.+)$/), r;
+  try{ if(!m) throw 0; r=await PlayView.decode(m[1]); if(!r||!r.v) throw 0; }
+  catch(e){ $('err').style.display='block'; return; }
+  var v=r.v;
+  function fmtDate(s){ if(!s) return ''; var d=new Date(s+'T12:00:00'); return isNaN(d)?s:d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}); }
+  var title='vs '+(v.opp||'Opponent');
+  document.title='Scouting Report: '+(v.opp||'Opponent')+' | Millersburg Lady Indians';
+  $('rtitle').textContent=v.opp||'Opponent'; $('ptitle').textContent='Scouting report: '+title;
+  var facts=[['Game date',fmtDate(v.gd)],['Their record',v.rec],['Pace',v.pace],['Main defense',v.defn]].filter(function(f){return f[1]});
+  $('facts').innerHTML=facts.map(function(f){return '<div><span>'+f[0]+'</span><strong>'+E(f[1])+'</strong></div>'}).join('');
+  var html='';
+  var pl=(r.players||[]);
+  if(pl.length){
+    html+='<section class="block2"><h2>Key players</h2><div class="tablewrap"><table><thead><tr><th>#</th><th>Name</th><th>Strengths</th><th>Weaknesses</th></tr></thead><tbody>'+
+      pl.map(function(p){return '<tr><td><strong>'+E(p.n||'')+'</strong></td><td>'+E(p.name||'')+'</td><td>'+E(p.s||'')+'</td><td>'+E(p.w||'')+'</td></tr>'}).join('')+'</tbody></table></div></section>';
+  }
+  [['Offensive tendencies & sets',v.off],['Defensive tendencies',v.de],['Keys to the game',v.keys]].forEach(function(s){
+    if(s[1]&&s[1].trim()) html+='<section class="block2"><h2>'+E(s[0])+'</h2><p>'+E(s[1])+'</p></section>';
+  });
+  $('body').innerHTML=html||'<p class="empty">This report has no details yet.</p>';
+  $('report').style.display='block';
+  $('print').onclick=function(){window.print()};
+})();
+</script>
+</body>
+</html>
