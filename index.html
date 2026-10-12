@@ -71,17 +71,22 @@
 
   <section class="band alt">
     <div class="wrap">
-      <div class="sec-head"><h2>Our <span>Legacy</span></h2></div>
-      <div class="stat">
-        <div><strong>--</strong><span>League titles</span></div>
-        <div><strong>--</strong><span>District titles</span></div>
-        <div><strong>--</strong><span>Playoff appearances</span></div>
-        <div><strong>--</strong><span>Established</span></div>
-      </div>
-      <p class="note">Add the program's real history and championship numbers here.</p>
+      <div class="sec-head"><h2>Our <span>Legacy</span></h2><button class="btn sm ghost" id="legedit" type="button">Edit legacy</button></div>
+      <div class="stat" id="legstats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"></div>
+      <div id="legstory" style="max-width:70ch;white-space:pre-wrap;margin-top:8px"></div>
+      <p class="note" id="legnote">Choose <b>Edit legacy</b> to add the program's real history, titles and records.</p>
     </div>
   </section>
 </main>
+
+<dialog id="legdlg" aria-labelledby="legt"><form class="dlg" id="legform">
+  <h2 id="legt">Edit legacy</h2>
+  <p style="color:var(--muted);margin:0 0 14px">Add the numbers you want to show (titles, years, records) and tell the program's story.</p>
+  <div id="legrows"></div>
+  <button class="btn sm ghost" type="button" id="legadd">+ Add a number</button>
+  <div class="field" style="margin-top:18px"><label for="legtext">Our story (optional)</label><textarea id="legtext" style="min-height:140px" placeholder="Program history, traditions, notable players and seasons..."></textarea></div>
+  <div class="toolbar"><button class="btn" type="submit">Save</button><button class="btn ghost" type="button" id="legcancel">Cancel</button><button class="btn danger" type="button" id="legreset" style="margin-left:auto">Clear all</button></div>
+</form></dialog>
 
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
@@ -111,6 +116,46 @@
     return '<a class="ncard reveal" href="news.html" style="text-decoration:none"><div class="nimg">'+E(n.tag)+'</div><div class="nbody"><time>'+new Date(n.date+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</time><h3>'+E(n.title)+'</h3><p>'+E(n.excerpt)+'</p></div></a>';
   }).join('');
   LI.reveal();
+})();
+</script>
+<script>
+(function(){
+  var E=LI.esc, DEF={stats:[{v:'--',l:'League titles'},{v:'--',l:'District titles'},{v:'--',l:'Playoff appearances'},{v:'--',l:'Established'}],story:'',edited:false};
+  var leg=LI.load('legacy',null)||JSON.parse(JSON.stringify(DEF));
+  function $(i){return document.getElementById(i)}
+  function draw(){
+    $('legstats').innerHTML=leg.stats.map(function(s){return '<div><strong>'+E(s.v)+'</strong><span>'+E(s.l)+'</span></div>'}).join('');
+    $('legstory').textContent=leg.story||'';
+    $('legnote').style.display=leg.edited?'none':'';
+  }
+  function row(s,i){
+    return '<div class="formrow" style="display:grid;grid-template-columns:100px 1fr 48px;gap:8px;align-items:end;margin-bottom:10px" data-row>'+
+      '<div><label for="lv'+i+'">Number</label><input id="lv'+i+'" value="'+E(s.v)+'" maxlength="12"></div>'+
+      '<div><label for="ll'+i+'">Label</label><input id="ll'+i+'" value="'+E(s.l)+'" maxlength="40"></div>'+
+      '<button type="button" class="iconbtn" data-rm aria-label="Remove this number" style="height:44px">&times;</button></div>';
+  }
+  function rows(){ return Array.prototype.map.call($('legrows').querySelectorAll('[data-row]'),function(r){var i=r.querySelectorAll('input');return {v:i[0].value.trim(),l:i[1].value.trim()};}); }
+  function fill(stats){ $('legrows').innerHTML=stats.map(row).join(''); }
+  var dlg=$('legdlg');
+  $('legedit').onclick=function(){ fill(leg.stats); $('legtext').value=leg.story||''; dlg.showModal(); };
+  $('legadd').onclick=function(){
+    var cur=rows(); if(cur.length>=8){alert('You can show up to 8 numbers.');return;}
+    cur.push({v:'',l:''}); fill(cur); var inp=$('legrows').querySelectorAll('input'); inp[inp.length-2].focus();
+  };
+  $('legrows').addEventListener('click',function(e){ if(e.target.hasAttribute('data-rm')){ var cur=rows(), idx=Array.prototype.indexOf.call($('legrows').children,e.target.closest('[data-row]')); cur.splice(idx,1); fill(cur); } });
+  $('legcancel').onclick=function(){dlg.close()};
+  dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
+  $('legform').addEventListener('submit',function(e){
+    e.preventDefault();
+    leg={stats:rows().filter(function(s){return s.v||s.l}),story:$('legtext').value.trim(),edited:true};
+    if(!LI.save('legacy',leg)) alert('Could not save. Browser storage may be blocked.');
+    dlg.close(); draw();
+  });
+  $('legreset').onclick=function(){
+    if(!confirm('Clear all legacy numbers and the story?')) return;
+    leg={stats:[],story:'',edited:true}; LI.save('legacy',leg); dlg.close(); draw();
+  };
+  draw();
 })();
 </script>
 </body>
