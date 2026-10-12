@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Playbook | Millersburg Lady Indians</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .pbhead{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end;margin-bottom:20px}
+  .pbhead h2{font-size:clamp(2rem,5vw,3rem)}
+  .pbhead p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+  .playcard{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer;transition:border-color .2s,transform .2s;box-shadow:0 1px 2px rgba(74,6,21,.06),0 6px 18px rgba(74,6,21,.06)}
+  .playcard:hover{border-color:var(--maroon);transform:translateY(-3px)}
+  .playcard canvas{width:100%;height:auto;aspect-ratio:600/564;object-fit:cover;border-bottom:1px solid var(--line);background:#d8b27a}
+  .playcard .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px}
+  .playcard h3{font-size:1.5rem}
+  .vbox{background:linear-gradient(180deg,#d8b27a,#c4965a);border:3px solid var(--gold);margin:0 auto}
+  .vbox canvas{width:100%;height:auto}
+  .playdlg{max-width:min(760px,96vw)}
+  .playdlg .dlg{padding:20px}
+  .playdlg .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}
+  .playdlg h2{font-size:2rem}
+  .notes{white-space:pre-wrap;background:#fff4cf;border:1px solid var(--gold-d);color:#5c4300;padding:12px 14px;margin-top:14px}
+  .nav2{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
+  .where{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+</style>
+</head>
+<body data-page="team-playbook">
+<main id="main">
+  <div class="pagehead"><div class="wrap"><h1>Team <span>Playbook</span></h1><p>Study the plays before practice. Tap a play to see each step and watch it animate.</p></div></div>
+  <section class="band"><div class="wrap">
+    <p id="status" class="meta" role="status" aria-live="polite"></p>
+    <div class="pbhead">
+      <div><h2 id="pbname"></h2><p id="pbdesc"></p><p class="where" id="where"></p></div>
+      <div class="field" id="pickwrap" style="margin:0;min-width:220px;display:none"><label for="pick">Playbook</label><select id="pick"></select></div>
+    </div>
+    <div class="row c2" id="filters" style="display:none;margin-bottom:8px">
+      <div class="field"><label for="q">Search plays</label><input id="q" type="search" placeholder="Search plays"></div>
+      <div class="field"><label>Category</label><div class="toolbar" id="cats" role="group" aria-label="Filter by category"></div></div>
+    </div>
+    <div class="grid g3" id="grid"></div>
+    <div class="panel" id="empty" style="display:none">
+      <h2>No playbook yet</h2>
+      <p>Your coach can share a playbook link, or publish one to this site. If you were sent a link, open it again. It should end with <code>#d=...</code>.</p>
+    </div>
+  </div></section>
+</main>
+
+<dialog id="dlg" class="playdlg" aria-labelledby="dname"><div class="dlg">
+  <div class="top"><div><div class="where" id="dcat"></div><h2 id="dname"></h2></div><button class="btn sm ghost" id="dclose" type="button">Close</button></div>
+  <div class="vbox" id="vbox"><canvas id="vc" width="600" height="564" role="img" aria-label="Play diagram"></canvas></div>
+  <div class="toolbar" style="margin-top:14px" id="stepbar" role="group" aria-label="Play steps"></div>
+  <div class="toolbar">
+    <button class="btn sm" id="anim" type="button">&#9654; Animate</button>
+    <label for="spd" class="sr">Animation speed</label>
+    <select id="spd" style="width:auto" aria-label="Animation speed"><option value=".6">Slow</option><option value="1" selected>Normal</option><option value="1.6">Fast</option></select>
+    <button class="btn sm ghost" id="defbtn" type="button" aria-pressed="false">Show defense</button>
+  </div>
+  <div class="notes" id="dnotes" style="display:none"></div>
+  <div class="nav2"><button class="btn sm ghost" id="prev" type="button">&larr; Previous play</button><button class="btn sm ghost" id="next" type="button">Next play &rarr;</button></div>
+</div></dialog>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/playview.js"></script>
+<script>
+(async function(){
+  var E=LI.esc, books=[], cur=null, list=[], pi=0, si=0, anim=null, showDef=false, cat='All', query='';
+  function $(i){return document.getElementById(i)}
+
+  /* ---- collect playbooks from every source ---- */
+  try{
+    var h=location.hash.match(/^#d=(.+)$/);
+    if(h){ var b=await PlayView.decode(h[1]); b.label='Shared with you'; books.push(b); }
+  }catch(e){ $('status').textContent='That playbook link looks damaged. Ask your coach to send it again.'; }
+  try{
+    var r=await fetch('playbooks.json',{cache:'no-cache'});
+    if(r.ok){ var arr=await r.json(); (Array.isArray(arr)?arr:[]).forEach(function(b){b.label='Published by your coach'; books.push(b);}); }
+  }catch(e){}
+  try{
+    var lp=LI.load('plays2',[]), lb=LI.load('playbooks',[]);
+    lb.forEach(function(b){
+      var plays=b.plays.map(function(id){return lp.filter(function(p){return p.id===id})[0]}).filter(Boolean).map(function(p){return PlayView.slim(p,b.showNotes!==false)});
+      books.push({name:b.name,desc:b.desc,plays:plays,label:'Preview from this device'});
+    });
+  }catch(e){}
+
+  if(!books.length){ $('empty').style.display=''; $('pbname').textContent=''; return; }
+
+  var pick=$('pick');
+  pick.innerHTML=books.map(function(b,i){return '<option value="'+i+'">'+E(b.name)+'</option>'}).join('');
+  if(books.length>1) $('pickwrap').style.display='';
+  pick.addEventListener('change',function(){ cat='All'; query=''; $('q').value=''; open(+pick.value); });
+
+  function open(i){
+    cur=books[i];
+    $('pbname').textContent=cur.name; $('pbdesc').textContent=cur.desc||''; $('where').textContent=cur.label||'';
+    var cats=['All']; cur.plays.forEach(function(p){ if(cats.indexOf(p.cat)<0) cats.push(p.cat); });
+    $('cats').innerHTML=cats.map(function(c){return '<button class="chip" aria-pressed="'+(c===cat)+'" data-c="'+E(c)+'">'+E(c)+'</button>'}).join('');
+    $('filters').style.display=cur.plays.length?'':'none';
+    draw();
+  }
+  function draw(){
+    list=cur.plays.filter(function(p){return (cat==='All'||p.cat===cat)&&p.name.toLowerCase().indexOf(query)>-1});
+    var g=$('grid');
+    if(!list.length){ g.innerHTML='<p class="empty" style="grid-column:1/-1">'+(cur.plays.length?'No plays match.':'This playbook has no plays yet.')+'</p>'; return; }
+    g.innerHTML=list.map(function(p,i){
+      return '<button class="playcard" data-i="'+i+'"><canvas width="600" height="'+PlayView.ch(p)+'" aria-hidden="true"></canvas><div class="body"><span class="where">'+E(p.cat||'')+'</span><h3>'+E(p.name)+'</h3><span class="meta" style="margin:0">'+p.steps.length+' step'+(p.steps.length>1?'s':'')+'</span></div></button>';
+    }).join('');
+    g.querySelectorAll('canvas').forEach(function(cv,i){ PlayView.render(cv,list[i],0,null,false); });
+  }
+  $('cats').addEventListener('click',function(e){var b=e.target.closest('.chip');if(!b)return;cat=b.dataset.c;
+    $('cats').querySelectorAll('.chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); draw();});
+  $('q').addEventListener('input',function(e){query=e.target.value.toLowerCase();draw();});
+
+  /* ---- play dialog ---- */
+  var dlg=$('dlg'), vc=$('vc');
+  function stop(){ if(anim){anim.stop();anim=null;} $('anim').innerHTML='&#9654; Animate'; }
+  function show(i){
+    stop(); pi=i; si=0; var p=list[pi];
+    $('dname').textContent=p.name; $('dcat').textContent=p.cat||'';
+    $('vbox').style.maxWidth=p.court==='full'?'380px':'none';
+    var n=$('dnotes'); n.style.display=p.notes?'':'none'; n.textContent=p.notes?'Coach’s notes:\n'+p.notes:'';
+    $('prev').disabled=pi===0; $('next').disabled=pi===list.length-1;
+    $('prev').style.opacity=pi===0?.4:1; $('next').style.opacity=pi===list.length-1?.4:1;
+    steps(); PlayView.render(vc,p,0,null,showDef);
+    vc.setAttribute('aria-label',p.name+' diagram, step 1 of '+p.steps.length);
+  }
+  function steps(){
+    var p=list[pi];
+    $('stepbar').innerHTML=p.steps.map(function(s,i){return '<button class="chip" data-s="'+i+'" aria-pressed="'+(i===si)+'">Step '+(i+1)+'</button>'}).join('');
+  }
+  $('stepbar').addEventListener('click',function(e){var b=e.target.closest('[data-s]');if(!b)return;stop();si=+b.dataset.s;steps();PlayView.render(vc,list[pi],si,null,showDef);vc.setAttribute('aria-label',list[pi].name+' diagram, step '+(si+1)+' of '+list[pi].steps.length);});
+  $('grid').addEventListener('click',function(e){var c=e.target.closest('.playcard');if(!c)return;show(+c.dataset.i);dlg.showModal();});
+  $('anim').onclick=function(){
+    if(anim){stop();PlayView.render(vc,list[pi],si,null,showDef);return;}
+    var p=list[pi];
+    if(p.steps.length<2){ $('status').textContent='This play has one step, so there is nothing to animate.'; return; }
+    $('anim').innerHTML='&#9632; Stop';
+    anim=PlayView.animate(vc,p,{speed:parseFloat($('spd').value),showDef:showDef,
+      onStep:function(i){si=i;steps();},
+      onDone:function(){ si=p.steps.length-1; stop(); steps(); PlayView.render(vc,p,si,null,showDef); }});
+  };
+  $('defbtn').onclick=function(){ showDef=!showDef; this.setAttribute('aria-pressed',showDef); this.textContent=showDef?'Hide defense':'Show defense'; if(!anim) PlayView.render(vc,list[pi],si,null,showDef); };
+  $('prev').onclick=function(){ if(pi>0) show(pi-1); };
+  $('next').onclick=function(){ if(pi<list.length-1) show(pi+1); };
+  $('dclose').onclick=function(){ dlg.close(); };
+  dlg.addEventListener('close',stop);
+  dlg.addEventListener('click',function(e){ if(e.target===dlg) dlg.close(); });
+
+  open(0);
+})();
+</script>
+</body>
+</html>

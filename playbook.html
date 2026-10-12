@@ -19,6 +19,13 @@
   .lib .sub{font-size:.8rem;color:var(--muted);margin-bottom:6px}
   .lib .acts{display:flex;gap:6px;flex-wrap:wrap}
   .lib .acts .btn{min-height:44px;padding:0 12px;font-size:.9rem}
+  .pbrow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);padding:6px 6px 6px 12px}
+  .pbrow .nm{font-weight:600}
+  .pblist{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:8px;max-height:300px;overflow:auto}
+  .pbact{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .pbact .btn{min-height:44px;padding:0 12px;font-size:.9rem}
+  .sharebox{margin-top:14px;padding:12px;background:#fff4cf;border:1px solid var(--gold-d);color:#3d2d00}
+  .sharebox input{margin:8px 0}
   .hint{font-size:.85rem;color:var(--muted);margin:10px 0 0}
   #printArea{display:none}
   @media print{
@@ -87,10 +94,43 @@
       <ul class="lib" id="plays"></ul>
     </div>
   </div></section>
+  <section class="band alt designer-main" id="pbsec"><div class="wrap">
+    <div class="sec-head"><h2>Team <span>Playbooks</span></h2></div>
+    <p class="note">Group your saved plays into a playbook for the players. Players open the <a href="players.html" style="color:inherit;font-weight:700">Team Playbook</a> page to study plays and watch them animate. They can't edit anything.</p>
+    <div class="designer" style="align-items:start">
+      <div class="panel">
+        <h3>Build a playbook</h3>
+        <div class="field"><label for="pbn">Playbook name</label><input id="pbn" placeholder="e.g. 2026-27 Offense"></div>
+        <div class="field"><label for="pbd">Description for players (optional)</label><textarea id="pbd" style="min-height:70px" placeholder="What this playbook covers"></textarea></div>
+        <div class="field" style="display:flex;gap:10px;align-items:center"><input id="pbnotes" type="checkbox" checked style="width:22px;height:22px;min-height:0;accent-color:var(--maroon)"><label for="pbnotes" style="margin:0;text-transform:none;letter-spacing:0;font-family:var(--body);color:var(--text)">Show my coaching notes to players</label></div>
+        <h4 style="font-size:1.3rem;margin:16px 0 8px">In this playbook (in order)</h4>
+        <ul class="pblist" id="pbinc"></ul>
+        <h4 style="font-size:1.3rem;margin:16px 0 8px">Add from your saved plays</h4>
+        <ul class="pblist" id="pbavail"></ul>
+        <div class="toolbar"><button class="btn sm" id="pbsave" type="button">Save playbook</button><button class="btn sm ghost" id="pbnew" type="button">New playbook</button></div>
+      </div>
+      <div class="panel">
+        <h3>Your playbooks</h3>
+        <ul class="pblist" id="pblist" style="max-height:none"></ul>
+        <p class="meta" id="pbmsg" role="status" aria-live="polite"></p>
+        <div class="sharebox" id="sharebox" style="display:none">
+          <b id="sharetitle">Player link</b>
+          <label for="sharelink" class="sr">Player link</label>
+          <input id="sharelink" readonly>
+          <div class="pbact"><button class="btn sm" id="sharecopy" type="button">Copy link</button></div>
+          <p style="margin:10px 0 0;font-size:.88rem" id="sharenote"></p>
+        </div>
+        <h4 style="font-size:1.3rem;margin:22px 0 8px">Publish on the website</h4>
+        <p class="meta" style="margin-top:0">Download all your playbooks as <code>playbooks.json</code>, then save it in the website's main folder (replace the old file). Players will see them on the Team Playbook page with no link needed.</p>
+        <button class="btn sm ghost" id="pbexport" type="button">Download playbooks.json</button>
+      </div>
+    </div>
+  </div></section>
   <div id="printArea"></div>
 </main>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
+<script src="js/playview.js"></script>
 <script>
 (function(){
   var cv=document.getElementById('court'), ctx=cv.getContext('2d'), W=600, E=LI.esc;
@@ -375,6 +415,7 @@
       return '<li><div>'+(p.thumb?'<img src="'+p.thumb+'" alt="">':'<div class="nothumb"></div>')+'</div><div><div class="nm">'+E(p.name)+'</div><div class="sub">'+E(p.cat)+' &middot; '+p.steps.length+' step'+(p.steps.length>1?'s':'')+'</div>'+
         '<div class="acts"><button class="btn sm ghost" data-open="'+p.id+'">Open</button><button class="btn sm ghost" data-dup="'+p.id+'">Copy</button><button class="btn sm danger" data-del="'+p.id+'" aria-label="Delete '+E(p.name)+'">Delete</button></div></div></li>';
     }).join(''):'<li class="empty" style="display:block;border:none;background:none">'+(plays.length?'No plays match.':'No saved plays yet.')+'</li>';
+    if(window.__pbRefresh) window.__pbRefresh();
   }
   function load(p){
     stopAnim(); P=clone(p); si=0;
@@ -402,7 +443,80 @@
   };
   document.getElementById('newp').onclick=function(){stopAnim();P=newPlay();si=0;document.getElementById('pname').value='';document.getElementById('pnotes').value='';catSel.value='Offense';drawSteps();applyCourt();};
 
-  P=newPlay(); drawSteps(); list(); applyCourt();
+  /* ---------- Team playbooks (for players) ---------- */
+  var pbs=LI.load('playbooks',[]), pb={id:null,name:'',desc:'',showNotes:true,plays:[]};
+  function $(id){return document.getElementById(id)}
+  function playById(id){return plays.filter(function(x){return x.id===id})[0]}
+  function say(t){$('pbmsg').textContent=t}
+  function pbRender(){
+    pb.plays=pb.plays.filter(playById);
+    $('pbinc').innerHTML=pb.plays.length?pb.plays.map(function(id,i){var x=playById(id);
+      return '<li class="pbrow"><span class="nm">'+(i+1)+'. '+E(x.name)+' <small style="color:var(--muted)">'+E(x.cat)+'</small></span><span class="pbact" style="margin:0"><button class="iconbtn" data-up="'+i+'" aria-label="Move '+E(x.name)+' up" type="button">&uarr;</button><button class="iconbtn" data-dn="'+i+'" aria-label="Move '+E(x.name)+' down" type="button">&darr;</button><button class="iconbtn" data-rm="'+i+'" aria-label="Remove '+E(x.name)+'" type="button">&times;</button></span></li>';
+    }).join(''):'<li class="empty" style="display:block;border:none;background:none">No plays added yet.</li>';
+    var av=plays.filter(function(x){return pb.plays.indexOf(x.id)<0});
+    $('pbavail').innerHTML=av.length?av.map(function(x){
+      return '<li class="pbrow"><span class="nm">'+E(x.name)+' <small style="color:var(--muted)">'+E(x.cat)+'</small></span><button class="btn sm ghost" data-add="'+x.id+'" type="button" style="min-height:44px">Add</button></li>';
+    }).join(''):'<li class="empty" style="display:block;border:none;background:none">'+(plays.length?'All saved plays are in this playbook.':'Save some plays above first.')+'</li>';
+    $('pblist').innerHTML=pbs.length?pbs.map(function(b){
+      var n=b.plays.filter(playById).length;
+      return '<li class="pbrow" style="grid-template-columns:1fr"><div><div class="nm">'+E(b.name)+'</div><div style="font-size:.85rem;color:var(--muted)">'+n+' play'+(n===1?'':'s')+'</div>'+
+        '<div class="pbact"><button class="btn sm ghost" data-pbedit="'+b.id+'" type="button">Edit</button><button class="btn sm" data-pbshare="'+b.id+'" type="button">Player link</button><button class="btn sm ghost" data-pbprev="'+b.id+'" type="button">Preview</button><button class="btn sm danger" data-pbdel="'+b.id+'" type="button" aria-label="Delete '+E(b.name)+'">Delete</button></div></div></li>';
+    }).join(''):'<li class="empty" style="display:block;border:none;background:none">No playbooks yet.</li>';
+  }
+  window.__pbRefresh=pbRender;
+  function pbLoadForm(){$('pbn').value=pb.name;$('pbd').value=pb.desc;$('pbnotes').checked=pb.showNotes!==false;}
+  $('pbinc').addEventListener('click',function(e){
+    var d=e.target.dataset,i;
+    if(d.up!==undefined){i=+d.up;if(i>0){var a=pb.plays[i];pb.plays[i]=pb.plays[i-1];pb.plays[i-1]=a;}}
+    else if(d.dn!==undefined){i=+d.dn;if(i<pb.plays.length-1){var b=pb.plays[i];pb.plays[i]=pb.plays[i+1];pb.plays[i+1]=b;}}
+    else if(d.rm!==undefined){pb.plays.splice(+d.rm,1);} else return;
+    pbRender();
+  });
+  $('pbavail').addEventListener('click',function(e){var id=e.target.dataset.add; if(!id)return; pb.plays.push(id); pbRender();});
+  $('pbnew').onclick=function(){pb={id:null,name:'',desc:'',showNotes:true,plays:[]};pbLoadForm();pbRender();say('');};
+  $('pbsave').onclick=function(){
+    var name=$('pbn').value.trim();
+    if(!name){say('Give the playbook a name first.');$('pbn').focus();return;}
+    if(!pb.plays.length){say('Add at least one play to the playbook.');return;}
+    pb.name=name;pb.desc=$('pbd').value.trim();pb.showNotes=$('pbnotes').checked;
+    if(!pb.id)pb.id=LI.uid();
+    var rec=clone(pb),i=pbs.findIndex(function(x){return x.id===rec.id}); if(i>-1)pbs[i]=rec; else pbs.push(rec);
+    say(LI.save('playbooks',pbs)?'Saved "'+name+'". Use Player link to share it.':'Could not save in this browser.');
+    pbRender();
+  };
+  function bundle(b){return {name:b.name,desc:b.desc||'',plays:b.plays.map(playById).filter(Boolean).map(function(x){return PlayView.slim(x,b.showNotes!==false)})};}
+  $('pblist').addEventListener('click',async function(e){
+    var d=e.target.dataset, b;
+    if(d.pbedit){b=pbs.filter(function(x){return x.id===d.pbedit})[0]; if(b){pb=clone(b);pbLoadForm();pbRender();say('Editing "'+b.name+'".');$('pbn').scrollIntoView({block:'center'});}}
+    if(d.pbdel&&confirm('Delete this playbook? The plays themselves are kept.')){pbs=pbs.filter(function(x){return x.id!==d.pbdel});LI.save('playbooks',pbs);if(pb.id===d.pbdel)pb={id:null,name:'',desc:'',showNotes:true,plays:[]};$('sharebox').style.display='none';pbLoadForm();pbRender();}
+    if(d.pbprev){window.open('players.html','_blank');}
+    if(d.pbshare){
+      b=pbs.filter(function(x){return x.id===d.pbshare})[0]; if(!b)return;
+      try{
+        var code=await PlayView.encode(bundle(b)), link=new URL('players.html',location.href).href+'#d='+code;
+        $('sharetitle').textContent='Player link for "'+b.name+'"'; $('sharelink').value=link; $('sharebox').style.display='';
+        var local=/^(file:|http:\/\/(localhost|127\.))/.test(location.href), notes=[];
+        if(local) notes.push('This link only works once the site is online. Right now the site is only on this computer.');
+        if(link.length>6000) notes.push('This link is long ('+link.length+' characters). Some messaging apps may cut it off. Publish the playbook on the website instead, or split it into smaller playbooks.');
+        notes.push('Anyone with the link can view this playbook. If you change the playbook, send a new link.');
+        $('sharenote').textContent=notes.join(' ');
+      }catch(err){say('Could not create the link in this browser.');}
+    }
+  });
+  $('sharecopy').onclick=function(){
+    var i=$('sharelink'); i.select();
+    var done=function(){say('Link copied.');};
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(i.value).then(done,function(){try{document.execCommand('copy');done();}catch(e){say('Press Ctrl+C to copy the selected link.');}});
+    else {try{document.execCommand('copy');done();}catch(e){say('Press Ctrl+C to copy the selected link.');}}
+  };
+  $('pbexport').onclick=function(){
+    if(!pbs.length){say('Create a playbook first.');return;}
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(pbs.map(bundle),null,1)],{type:'application/json'}));
+    a.download='playbooks.json'; a.click(); say('Downloaded playbooks.json. Save it in the website\u2019s main folder.');
+  };
+
+  P=newPlay(); drawSteps(); list(); applyCourt(); pbRender();
 })();
 </script>
 </body>
