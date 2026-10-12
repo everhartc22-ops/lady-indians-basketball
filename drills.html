@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drill Library | Millersburg Lady Indians</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-page="drills">
+<main id="main">
+  <div class="pagehead"><div class="wrap"><h1>Drill <span>Library</span></h1><p>Search by skill, then add drills to a practice plan. Add your own drills too.</p></div></div>
+  <section class="band"><div class="wrap">
+    <div class="row c2" style="margin-bottom:12px">
+      <div class="field"><label for="q">Search</label><input id="q" type="search" placeholder="Search drills"></div>
+      <div class="field"><label>Skill</label><div class="toolbar" id="cats" role="group" aria-label="Filter by skill"></div></div>
+    </div>
+    <p class="meta" id="count" aria-live="polite"></p>
+    <div class="grid g3" id="grid"></div>
+
+    <div class="panel" style="margin-top:48px">
+      <h2>Add a custom drill</h2>
+      <form id="addform">
+        <div class="row c2">
+          <div class="field"><label for="dn">Name</label><input id="dn" required></div>
+          <div class="field"><label for="dc">Skill</label><select id="dc"></select></div>
+        </div>
+        <div class="field"><label for="dd">Description</label><textarea id="dd"></textarea></div>
+        <button class="btn" type="submit">Save drill</button>
+      </form>
+    </div>
+  </div></section>
+</main>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function(){
+  var E=LI.esc, base=LI_DATA.drills, mine=LI.load('drills',[]), cat='All', q='';
+  var cats=['Shooting','Ball Handling','Defense','Offense','Transition','Rebounding','Conditioning'];
+  function all(){return base.concat(mine);}
+  var catsEl=document.getElementById('cats');
+  catsEl.innerHTML=['All'].concat(cats).map(function(c){return '<button class="chip" aria-pressed="'+(c==='All')+'" data-c="'+c+'">'+c+'</button>';}).join('');
+  document.getElementById('dc').innerHTML=cats.map(function(c){return '<option>'+c+'</option>';}).join('');
+  function draw(){
+    var list=all().filter(function(d){return (cat==='All'||d.cat===cat)&&(d.name+' '+d.desc).toLowerCase().indexOf(q)>-1;});
+    document.getElementById('count').textContent=list.length+' drill'+(list.length===1?'':'s');
+    document.getElementById('grid').innerHTML=list.map(function(d){
+      return '<article class="drill"><div class="meta"><span class="tag gold">'+E(d.cat)+'</span><span class="tag">'+E(d.level||'Custom')+'</span></div><h3>'+E(d.name)+'</h3><p>'+E(d.desc)+'</p><p style="font-size:.8rem">Players: '+E(d.players||'Any')+'</p><button class="btn sm" data-add="'+E(d.id)+'">Add to practice plan</button></article>';
+    }).join('')||'<p class="empty">No drills match.</p>';
+  }
+  catsEl.addEventListener('click',function(e){var b=e.target.closest('.chip');if(!b)return;cat=b.dataset.c;catsEl.querySelectorAll('.chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)});draw();});
+  document.getElementById('q').addEventListener('input',function(e){q=e.target.value.toLowerCase();draw();});
+  document.getElementById('grid').addEventListener('click',function(e){
+    var id=e.target.dataset.add; if(!id)return;
+    var d=all().filter(function(x){return x.id===id})[0], cart=LI.load('cart',[]);
+    cart.push({name:d.name,min:10,notes:d.desc}); LI.save('cart',cart);
+    e.target.textContent='Added ('+cart.length+' queued)';
+  });
+  document.getElementById('addform').addEventListener('submit',function(e){
+    e.preventDefault();
+    mine.push({id:'c'+LI.uid(),name:document.getElementById('dn').value.trim(),cat:document.getElementById('dc').value,desc:document.getElementById('dd').value.trim(),players:'Any',level:'Custom'});
+    LI.save('drills',mine); e.target.reset(); draw();
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

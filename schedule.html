@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schedule & Results | Millersburg Lady Indians</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .manage{display:none;gap:8px;flex-wrap:wrap;margin-bottom:18px;padding:16px;background:#fff4cf;border:1px solid var(--gold-d)}
+  body.editing .manage{display:flex}
+  .colact{display:none}
+  body.editing .colact{display:table-cell}
+  .formrow{display:grid;gap:14px}
+  @media(min-width:600px){.formrow.c2{grid-template-columns:1fr 1fr}.formrow.c3{grid-template-columns:repeat(3,1fr)}}
+  .empty-roster{padding:40px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body data-page="schedule">
+<main id="main">
+  <div class="pagehead"><div class="wrap"><h1>Schedule <span>&amp; Results</span></h1><p>Game times and locations are subject to change.</p></div></div>
+  <section class="band"><div class="wrap">
+    <div class="stat" id="rec"></div>
+
+    <div class="toolbar" style="justify-content:space-between">
+      <div class="toolbar" role="group" aria-label="Filter games" style="margin:0">
+        <button class="chip" aria-pressed="true" data-f="all">All</button>
+        <button class="chip" aria-pressed="false" data-f="home">Home</button>
+        <button class="chip" aria-pressed="false" data-f="away">Away</button>
+      </div>
+      <button class="btn sm ghost" id="mgr" aria-pressed="false">Manage schedule</button>
+    </div>
+
+    <div class="manage" id="manage">
+      <button class="btn sm" id="addbtn">+ Add game</button>
+      <button class="btn sm ghost" id="export">Export backup</button>
+      <label class="btn sm ghost" style="margin:0;color:var(--text)">Import backup<input type="file" id="import" accept="application/json" class="sr"></label>
+      <button class="btn sm danger" id="wipe">Remove all games</button>
+      <p class="meta" style="flex-basis:100%;margin:6px 0 0;color:var(--muted)">The schedule is saved in this browser only. Use Export backup to keep a copy or move it to another computer. To record a final score, choose Edit on the game.</p>
+    </div>
+
+    <div class="tablewrap"><table>
+      <thead><tr><th>Date</th><th>Time</th><th>Opponent</th><th>Location</th><th>Type</th><th>Result</th><th class="colact"><span class="sr">Edit</span></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+  </div></section>
+</main>
+
+<dialog id="formdlg" aria-labelledby="ft">
+  <form class="dlg" id="gform">
+    <h2 id="ft">Add game</h2>
+    <div class="formrow c2">
+      <div class="field"><label for="g-date">Date</label><input id="g-date" type="date" required></div>
+      <div class="field"><label for="g-time">Time</label><input id="g-time" type="time" value="19:00" required></div>
+    </div>
+    <div class="field"><label for="g-opp">Opponent</label><input id="g-opp" required autocomplete="off" placeholder="e.g. Upper Dauphin"></div>
+    <div class="formrow c3">
+      <div class="field"><label for="g-home">Home / Away</label><select id="g-home"><option value="home">Home</option><option value="away">Away</option></select></div>
+      <div class="field"><label for="g-type">Game type</label><select id="g-type"><option>League</option><option>Non-League</option><option>Tournament</option><option>Playoff</option><option>Scrimmage</option></select></div>
+      <div class="field"><label for="g-loc">Location</label><input id="g-loc" placeholder="Gym or city"></div>
+    </div>
+    <fieldset style="border:1px solid var(--line);padding:12px 14px;margin:0 0 16px">
+      <legend style="font-family:var(--head);text-transform:uppercase;letter-spacing:.1em;color:var(--accent);padding:0 6px">Final score (leave blank until played)</legend>
+      <div class="formrow c2">
+        <div class="field" style="margin:0"><label for="g-us">Lady Indians</label><input id="g-us" type="number" min="0" inputmode="numeric"></div>
+        <div class="field" style="margin:0"><label for="g-them">Opponent</label><input id="g-them" type="number" min="0" inputmode="numeric"></div>
+      </div>
+    </fieldset>
+    <div class="toolbar">
+      <button class="btn" type="submit">Save game</button>
+      <button class="btn ghost" type="button" id="cancel">Cancel</button>
+      <button class="btn danger" type="button" id="del" style="margin-left:auto">Delete game</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function(){
+  var E=LI.esc, S=LI.getSchedule(), f='all', editing=false, editId=null, fd=document.getElementById('formdlg');
+  function $(i){return document.getElementById(i)}
+  function persist(){ if(!LI.saveSchedule(S)) alert('Could not save. Browser storage may be blocked or full.'); S=LI.getSchedule(); draw(); }
+
+  function summary(){
+    var played=S.filter(function(g){return g.result}), w=played.filter(function(g){return g.result.us>g.result.them}).length;
+    $('rec').innerHTML=
+      '<div><strong>'+w+'-'+(played.length-w)+'</strong><span>Overall</span></div>'+
+      '<div><strong>'+S.length+'</strong><span>Games</span></div>'+
+      '<div><strong>'+S.filter(function(g){return g.home}).length+'</strong><span>Home games</span></div>'+
+      '<div><strong>'+(S.length-played.length)+'</strong><span>Remaining</span></div>';
+  }
+  function draw(){
+    summary();
+    var next=LI.nextGame(), list=S.filter(function(g){return f==='all'||(f==='home'?g.home:!g.home)});
+    if(!list.length){ $('rows').innerHTML='<tr><td colspan="7" class="empty-roster">No games yet. Choose <b>Manage schedule</b> then <b>Add game</b>.</td></tr>'; return; }
+    $('rows').innerHTML=list.map(function(g){
+      var r=g.result?'<span class="res '+(g.result.us>g.result.them?'w':'l')+'">'+(g.result.us>g.result.them?'W':'L')+' '+g.result.us+'-'+g.result.them+'</span>':'<span style="color:var(--muted)">&ndash;</span>';
+      var n=next&&next.id===g.id?' <span class="tag gold">Next</span>':'';
+      return '<tr><td>'+LI.fmtDate(g)+n+'</td><td>'+LI.fmtTime(g)+'</td><td><strong>'+(g.home?'vs ':'at ')+E(g.opp)+'</strong></td><td>'+E(g.loc||(g.home?LI_DATA.team.gym:'Away'))+'</td><td><span class="tag">'+E(g.type||'')+'</span></td><td>'+r+'</td>'+
+        '<td class="colact"><button class="btn sm" data-edit="'+E(g.id)+'" aria-label="Edit game vs '+E(g.opp)+'">Edit</button></td></tr>';
+    }).join('');
+  }
+
+  document.querySelectorAll('.chip').forEach(function(b){b.addEventListener('click',function(){
+    f=b.dataset.f; document.querySelectorAll('.chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); draw();});});
+
+  var mgr=$('mgr');
+  mgr.onclick=function(){
+    editing=!editing; document.body.classList.toggle('editing',editing);
+    mgr.setAttribute('aria-pressed',editing); mgr.textContent=editing?'Done managing':'Manage schedule';
+  };
+
+  function openForm(id){
+    editId=id||null;
+    var g=id?S.filter(function(x){return x.id===id})[0]:{};
+    $('ft').textContent=id?'Edit game':'Add game';
+    $('g-date').value=g.date||''; $('g-time').value=g.time||'19:00'; $('g-opp').value=g.opp||'';
+    $('g-home').value=(g.home===false)?'away':'home'; $('g-type').value=g.type||'League';
+    $('g-loc').value=g.loc||'';
+    $('g-us').value=g.result?g.result.us:''; $('g-them').value=g.result?g.result.them:'';
+    $('del').style.display=id?'':'none';
+    fd.showModal();
+  }
+  $('addbtn').onclick=function(){openForm(null)};
+  $('rows').addEventListener('click',function(e){var b=e.target.closest('[data-edit]'); if(b) openForm(b.dataset.edit);});
+  $('cancel').onclick=function(){fd.close()};
+  fd.addEventListener('click',function(e){if(e.target===fd)fd.close()});
+
+  $('gform').addEventListener('submit',function(e){
+    e.preventDefault();
+    var us=$('g-us').value, them=$('g-them').value, result=null;
+    if(us!==''||them!==''){
+      if(us===''||them===''){alert('Enter both scores, or leave both blank.');return;}
+      result={us:+us,them:+them};
+    }
+    var home=$('g-home').value==='home';
+    var rec={
+      id:editId||LI.uid(), date:$('g-date').value, time:$('g-time').value, opp:$('g-opp').value.trim(),
+      home:home, loc:$('g-loc').value.trim()||(home?LI_DATA.team.gym:'Away'), type:$('g-type').value, result:result
+    };
+    var i=S.findIndex(function(x){return x.id===rec.id});
+    if(i>-1) S[i]=rec; else S.push(rec);
+    fd.close(); persist();
+  });
+  $('del').onclick=function(){
+    if(!editId||!confirm('Delete this game from the schedule?')) return;
+    S=S.filter(function(x){return x.id!==editId}); fd.close(); persist();
+  };
+  $('wipe').onclick=function(){
+    if(confirm('Remove ALL games, including the sample games? This cannot be undone.')){S=[];persist();}
+  };
+
+  $('export').onclick=function(){
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));
+    a.download='lady-indians-schedule.json'; a.click();
+  };
+  $('import').addEventListener('change',function(e){
+    var file=e.target.files[0]; if(!file) return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{
+        var d=JSON.parse(r.result); if(!Array.isArray(d)) throw 0;
+        if(!confirm('Replace the current schedule with '+d.length+' imported game(s)?')) return;
+        S=d; persist();
+      }catch(x){alert('That file is not a valid schedule backup.')}
+    };
+    r.readAsText(file); e.target.value='';
+  });
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Millersburg Lady Indians Basketball</title>
+<meta name="description" content="Official team portal for the Millersburg Lady Indians basketball team: schedule, roster, news and coaching tools.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-page="home">
+
+<main id="main">
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <p class="kicker">Strength. Pride. Tradition.</p>
+        <h1>Home of the <em>Lady Indians</em></h1>
+        <p class="sub">Millersburg Area High School girls basketball. Follow the schedule, meet the roster and get the latest from the Millersburg, PA program.</p>
+        <div class="cta">
+          <a class="btn" href="schedule.html">Full Schedule</a>
+          <a class="btn ghost" href="roster.html">Meet the Team</a>
+        </div>
+      </div>
+      <aside class="nextcard" aria-labelledby="nm-h">
+        <h2 id="nm-h">Next Game</h2>
+        <div id="nextgame"></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <div class="sec-head"><h2>Coaches' <span>Corner</span></h2></div>
+      <div class="grid g4">
+        <a class="tile reveal" href="playbook.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"/><circle cx="8" cy="10" r="1.6"/><circle cx="16" cy="14" r="1.6"/><path d="M9.5 11 14 13" stroke-dasharray="2 2"/></svg>
+          <h3>Play Designer</h3><p>Draw plays on a half court, save them and export diagrams.</p>
+        </a>
+        <a class="tile reveal" href="drills.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h6v14H4zM14 5h6v14h-6z"/></svg>
+          <h3>Drill Library</h3><p>Searchable drills by skill, time and level.</p>
+        </a>
+        <a class="tile reveal" href="practice.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <h3>Practice Planner</h3><p>Build timed practice plans from your drills and print them.</p>
+        </a>
+        <a class="tile reveal" href="scouting.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <h3>Scouting Reports</h3><p>Record opponent tendencies, key players and game keys.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt">
+    <div class="wrap">
+      <div class="sec-head"><h2>Meet the <span>Roster</span></h2><a class="more" href="roster.html">Full roster &rarr;</a></div>
+      <div class="grid g4" id="homeroster"></div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="wrap">
+      <div class="sec-head"><h2>In the <span>Spotlight</span></h2><a class="more" href="news.html">All news &rarr;</a></div>
+      <div class="grid g3" id="homenews"></div>
+    </div>
+  </section>
+
+  <section class="band alt">
+    <div class="wrap">
+      <div class="sec-head"><h2>Our <span>Legacy</span></h2></div>
+      <div class="stat">
+        <div><strong>--</strong><span>League titles</span></div>
+        <div><strong>--</strong><span>District titles</span></div>
+        <div><strong>--</strong><span>Playoff appearances</span></div>
+        <div><strong>--</strong><span>Established</span></div>
+      </div>
+      <p class="note">Add the program's real history and championship numbers here.</p>
+    </div>
+  </section>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function(){
+  var D=LI_DATA, E=LI.esc;
+  var g=LI.nextGame(), box=document.getElementById('nextgame');
+  if(!g){ box.innerHTML='<p class="meta">Schedule coming soon.</p><a class="btn sm" href="schedule.html">View schedule</a>'; }
+  else{
+    box.innerHTML='<div class="vs"><div class="tn">Lady Indians</div><div class="v">'+(g.home?'VS':'AT')+'</div><div class="tn">'+E(g.opp)+'</div></div>'+
+      '<p class="meta">'+LI.fmtDate(g)+' &middot; '+LI.fmtTime(g)+'<br>'+E(g.loc)+'</p>'+
+      '<div class="count" role="timer" aria-label="Time until tip-off"><div><strong id="cd">0</strong><span>Days</span></div><div><strong id="ch">0</strong><span>Hrs</span></div><div><strong id="cm">0</strong><span>Min</span></div><div><strong id="cs">0</strong><span>Sec</span></div></div>'+
+      '<a class="btn sm" href="schedule.html">Full schedule</a>';
+    var t=LI.gameDate(g);
+    function tick(){var d=Math.max(0,t-new Date()),s=Math.floor(d/1000);
+      document.getElementById('cd').textContent=Math.floor(s/86400);
+      document.getElementById('ch').textContent=String(Math.floor(s%86400/3600)).padStart(2,'0');
+      document.getElementById('cm').textContent=String(Math.floor(s%3600/60)).padStart(2,'0');
+      document.getElementById('cs').textContent=String(s%60).padStart(2,'0');}
+    tick(); setInterval(tick,1000);
+  }
+  var person='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"/><path d="M3 22c0-5 4-8 9-8s9 3 9 8z"/></svg>';
+  document.getElementById('homeroster').innerHTML=LI.getRoster().slice(0,4).map(function(p){
+    return '<a class="pcard reveal" href="roster.html" style="text-decoration:none"><div class="pphoto">'+(p.photo?'<img src="'+p.photo+'" alt="">':person)+'<span class="pnum">'+E(p.num)+'</span></div><div class="pinfo"><h3>'+E(p.name)+'</h3><p>'+E(p.pos)+' &middot; '+E(p.grade)+' &middot; '+E(p.height)+'</p></div></a>';
+  }).join('');
+  document.getElementById('homenews').innerHTML=D.news.map(function(n){
+    return '<a class="ncard reveal" href="news.html" style="text-decoration:none"><div class="nimg">'+E(n.tag)+'</div><div class="nbody"><time>'+new Date(n.date+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</time><h3>'+E(n.title)+'</h3><p>'+E(n.excerpt)+'</p></div></a>';
+  }).join('');
+  LI.reveal();
+})();
+</script>
+</body>
+</html>

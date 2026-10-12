@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Practice Planner | Millersburg Lady Indians</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .qotd{border-left:6px solid var(--gold);background:var(--bg);padding:16px 18px;margin-bottom:22px}
+  .qotd .lbl{font-family:var(--head);text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-weight:700;font-size:.95rem;margin-bottom:6px}
+  .qotd blockquote{margin:0;font-size:1.2rem;font-style:italic;line-height:1.45}
+  .qotd cite{display:block;margin-top:8px;font-style:normal;font-weight:600;color:var(--muted)}
+  .qedit{margin-top:12px;display:none}
+  .qedit.open{display:block}
+  .rem{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+  .rem li{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);padding:4px 6px 4px 12px;min-height:48px}
+  .rem input[type=checkbox]{width:22px;height:22px;min-height:0;flex:none;accent-color:var(--maroon)}
+  .rem label{flex:1;margin:0;font-family:var(--body);text-transform:none;letter-spacing:0;font-size:1rem;color:var(--text);cursor:pointer}
+  .rem li.done label{text-decoration:line-through;color:var(--muted)}
+  .remadd{display:flex;gap:8px}
+  .remadd input{flex:1}
+  @media print{.qotd{border-color:#444;background:#fff}.qotd .lbl{color:#000}.rem li{background:#fff;border-color:#999}}
+</style>
+<script>window.LI_GATED=true</script>
+<script src="js/gate.js"></script>
+</head>
+<body data-page="practice">
+<main id="main">
+  <div class="pagehead"><div class="wrap"><h1>Practice <span>Planner</span></h1><p>Build a timed plan from your drill library. Plans save in this browser and can be printed.</p></div></div>
+  <section class="band"><div class="wrap designer" style="align-items:start">
+    <div class="panel">
+      <section class="qotd" aria-labelledby="qlbl">
+        <div class="lbl" id="qlbl">Quote of the Day</div>
+        <blockquote id="qtext"></blockquote>
+        <cite id="qby"></cite>
+        <div class="toolbar noprint" style="margin:12px 0 0">
+          <button class="btn sm ghost" id="qnext" type="button">New quote</button>
+          <button class="btn sm ghost" id="qown" type="button" aria-expanded="false" aria-controls="qedit">Write my own</button>
+        </div>
+        <div class="qedit noprint" id="qedit">
+          <div class="field"><label for="qin">Quote</label><textarea id="qin" style="min-height:70px"></textarea></div>
+          <div class="field" style="margin-bottom:0"><label for="qauth">Said by (optional)</label><input id="qauth"></div>
+        </div>
+      </section>
+      <div class="row c2">
+        <div class="field"><label for="title">Practice title</label><input id="title" placeholder="e.g. Tuesday - Defense focus"></div>
+        <div class="field"><label for="date">Date</label><input id="date" type="date"></div>
+      </div>
+      <div class="field"><label for="start">Start time</label><input id="start" type="time" value="15:30" style="max-width:200px"></div>
+      <ol class="blocks" id="blocks"></ol>
+      <p class="total">Total: <b id="tot">0</b> min &middot; Ends <b id="end">--</b></p>
+      <section aria-labelledby="remh" style="margin-top:26px">
+        <h3 id="remh" style="font-size:1.6rem;margin-bottom:12px">Reminders</h3>
+        <ul class="rem" id="rem"></ul>
+        <form class="remadd noprint" id="remform">
+          <label for="remin" class="sr">New reminder</label>
+          <input id="remin" placeholder="Add a reminder (e.g. Bring practice jerseys)" autocomplete="off">
+          <button class="btn sm" type="submit">Add</button>
+        </form>
+        <button class="btn sm ghost noprint" id="remclear" type="button" style="margin-top:10px">Clear completed</button>
+      </section>
+      <div class="toolbar noprint"><button class="btn sm" id="save">Save plan</button><button class="btn sm ghost" id="print">Print</button><button class="btn sm danger" id="clear">Clear</button></div>
+    </div>
+    <div class="noprint">
+      <div class="panel" style="margin-bottom:20px">
+        <h3>Add from drills</h3>
+        <div class="row c2"><div class="field"><label for="pick">Drill</label><select id="pick"></select></div>
+        <div class="field"><label for="pm">Minutes</label><input id="pm" type="number" min="1" value="10"></div></div>
+        <button class="btn sm" id="addpick">Add drill</button>
+        <p class="meta">Queue more from the <a href="drills.html" style="color:var(--gold)">Drill Library</a>.</p>
+      </div>
+      <div class="panel" style="margin-bottom:20px">
+        <h3>Add custom block</h3>
+        <div class="field"><label for="cn">Name</label><input id="cn" placeholder="Warm-up, team talk, scrimmage..."></div>
+        <div class="field"><label for="cm">Minutes</label><input id="cm" type="number" min="1" value="10"></div>
+        <button class="btn sm" id="addcustom">Add block</button>
+      </div>
+      <div class="panel">
+        <h3>Saved plans</h3>
+        <ul class="playlist" id="plans"></ul>
+      </div>
+    </div>
+  </div></section>
+</main>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function(){
+  var E=LI.esc, blocks=LI.load('cart',[]), plans=LI.load('plans',[]), curId=null;
+  var drills=LI_DATA.drills.concat(LI.load('drills',[]));
+  document.getElementById('pick').innerHTML=drills.map(function(d,i){return '<option value="'+i+'">'+E(d.name)+' </option>';}).join('');
+  var now0=new Date(); document.getElementById('date').value=now0.getFullYear()+'-'+String(now0.getMonth()+1).padStart(2,'0')+'-'+String(now0.getDate()).padStart(2,'0');
+
+  function fmt(mins){var h=Math.floor(mins/60)%24,m=mins%60,ap=h>=12?'PM':'AM';return ((h%12)||12)+':'+String(m).padStart(2,'0')+' '+ap;}
+  function startMin(){var v=document.getElementById('start').value||'15:30';return +v.slice(0,2)*60+ +v.slice(3,5);}
+  function draw(){
+    var t=startMin(), tot=0, el=document.getElementById('blocks');
+    el.innerHTML=blocks.length?blocks.map(function(b,i){
+      var s=t; t+=b.min; tot+=b.min;
+      return '<li class="block"><span class="t">'+fmt(s)+'</span><span class="n">'+E(b.name)+' <small>'+(b.notes?E(b.notes):'')+'</small></span><span class="mins"><input class="mn" type="number" min="1" value="'+b.min+'" data-m="'+i+'" aria-label="Minutes for '+E(b.name)+'" style="width:72px"> <span class="noprint">min</span></span><span class="acts noprint">'+
+        '<button class="iconbtn" data-up="'+i+'" aria-label="Move up">&uarr;</button><button class="iconbtn" data-dn="'+i+'" aria-label="Move down">&darr;</button><button class="iconbtn" data-rm="'+i+'" aria-label="Remove">&times;</button></span></li>';
+    }).join(''):'<li class="empty">No blocks yet. Add drills or custom blocks.</li>';
+    document.getElementById('tot').textContent=tot; document.getElementById('end').textContent=fmt(startMin()+tot);
+    LI.save('cart',blocks);
+  }
+  document.getElementById('blocks').addEventListener('click',function(e){
+    var d=e.target.dataset, i;
+    if(d.up!==undefined){i=+d.up;if(i>0){var x=blocks[i];blocks[i]=blocks[i-1];blocks[i-1]=x;}}
+    else if(d.dn!==undefined){i=+d.dn;if(i<blocks.length-1){var y=blocks[i];blocks[i]=blocks[i+1];blocks[i+1]=y;}}
+    else if(d.rm!==undefined){blocks.splice(+d.rm,1);} else return;
+    draw();
+  });
+  document.getElementById('blocks').addEventListener('change',function(e){var i=e.target.dataset.m; if(i===undefined) return; blocks[+i].min=Math.max(1,parseInt(e.target.value,10)||1); draw();});
+  document.getElementById('start').addEventListener('input',draw);
+  document.getElementById('addpick').onclick=function(){var d=drills[+document.getElementById('pick').value];blocks.push({name:d.name,min:+document.getElementById('pm').value||10,notes:d.desc});draw();};
+  document.getElementById('addcustom').onclick=function(){var n=document.getElementById('cn').value.trim();if(!n)return;blocks.push({name:n,min:+document.getElementById('cm').value||10,notes:''});document.getElementById('cn').value='';draw();};
+  document.getElementById('clear').onclick=function(){if(confirm('Clear all blocks?')){blocks=[];curId=null;draw();}};
+  document.getElementById('print').onclick=function(){window.print();};
+
+  function lists(){
+    var ul=document.getElementById('plans');
+    ul.innerHTML=plans.length?plans.map(function(p){return '<li><span>'+E(p.title)+' <small style="color:var(--muted)">'+E(p.date)+'</small></span><button class="btn sm ghost" data-open="'+p.id+'">Open</button><button class="btn sm danger" data-del="'+p.id+'" aria-label="Delete '+E(p.title)+'">Delete</button></li>';}).join(''):'<li class="empty" style="border:none;background:none">No saved plans.</li>';
+  }
+  document.getElementById('plans').addEventListener('click',function(e){
+    var o=e.target.dataset.open, d=e.target.dataset.del;
+    if(o){var p=plans.filter(function(x){return x.id===o})[0];curId=p.id;blocks=JSON.parse(JSON.stringify(p.blocks));
+      document.getElementById('title').value=p.title;document.getElementById('date').value=p.date;document.getElementById('start').value=p.start;
+      rems=p.reminders?JSON.parse(JSON.stringify(p.reminders)):[]; drawRem();
+      if(p.quote&&p.quote.text){q={text:p.quote.text,by:p.quote.by||'',manual:true};} else q.manual=false; showQuote();
+      draw();}
+    if(d&&confirm('Delete this plan?')){plans=plans.filter(function(x){return x.id!==d});LI.save('plans',plans);lists();}
+  });
+  document.getElementById('save').onclick=function(){
+    var rec={id:curId||LI.uid(),title:document.getElementById('title').value.trim()||'Untitled practice',date:document.getElementById('date').value,start:document.getElementById('start').value,blocks:JSON.parse(JSON.stringify(blocks)),reminders:JSON.parse(JSON.stringify(rems)),quote:{text:q.text,by:q.by}};
+    var i=plans.findIndex(function(x){return x.id===rec.id}); if(i>-1)plans[i]=rec; else plans.unshift(rec);
+    curId=rec.id; LI.save('plans',plans); lists();
+  };
+
+  /* ---------- Quote of the day ---------- */
+  var QUOTES=[
+    ["It's not the will to win, but the will to prepare to win that makes the difference.","Bob Knight"],
+    ["Ability may get you to the top, but it takes character to keep you there.","John Wooden"],
+    ["Don't let what you cannot do interfere with what you can do.","John Wooden"],
+    ["Be quick, but don't hurry.","John Wooden"],
+    ["Talent wins games, but teamwork and intelligence win championships.","Michael Jordan"],
+    ["I've failed over and over and over again in my life. And that is why I succeed.","Michael Jordan"],
+    ["I can accept failure, everyone fails at something. But I can't accept not trying.","Michael Jordan"],
+    ["The strength of the team is each individual member. The strength of each member is the team.","Phil Jackson"],
+    ["You can't get much done in life if you only work on the days when you feel good.","Jerry West"],
+    ["Champions keep playing until they get it right.","Billie Jean King"],
+    ["Responsibility equals accountability equals ownership. And a sense of ownership is the most powerful thing a team can have.","Pat Summitt"],
+    ["Everything negative - pressure, challenges - is all an opportunity for me to rise.","Kobe Bryant"],
+    ["Success is no accident. It is hard work, perseverance, learning, studying, sacrifice and most of all, love of what you are doing.","Pele"]
+  ];
+  var q={text:'',by:'',manual:false}, qoff=0;
+  function dayIndex(){
+    var d=document.getElementById('date').value, t=d?new Date(d+'T12:00:00'):new Date();
+    return Math.floor(t.getTime()/86400000);
+  }
+  function showQuote(){
+    if(!q.manual){ var a=QUOTES[(dayIndex()+qoff)%QUOTES.length]; q.text=a[0]; q.by=a[1]; }
+    document.getElementById('qtext').textContent='\u201C'+q.text+'\u201D';
+    document.getElementById('qby').textContent=q.by?'\u2014 '+q.by:'';
+  }
+  document.getElementById('qnext').onclick=function(){q.manual=false;qoff++;showQuote();};
+  var qedit=document.getElementById('qedit'), qown=document.getElementById('qown');
+  qown.onclick=function(){
+    var open=!qedit.classList.contains('open'); qedit.classList.toggle('open',open); qown.setAttribute('aria-expanded',open);
+    qown.textContent=open?'Use daily quote':'Write my own';
+    if(open){ document.getElementById('qin').value=q.manual?q.text:''; document.getElementById('qauth').value=q.manual?q.by:''; document.getElementById('qin').focus(); }
+    else { q.manual=false; showQuote(); }
+  };
+  function customQuote(){
+    var t=document.getElementById('qin').value.trim();
+    if(t){ q={text:t,by:document.getElementById('qauth').value.trim(),manual:true}; showQuote(); }
+  }
+  document.getElementById('qin').addEventListener('input',customQuote);
+  document.getElementById('qauth').addEventListener('input',customQuote);
+  document.getElementById('date').addEventListener('input',showQuote);
+
+  /* ---------- Reminders ---------- */
+  var rems=LI.load('prem',[]);
+  function drawRem(){
+    document.getElementById('rem').innerHTML=rems.length?rems.map(function(r,i){
+      return '<li class="'+(r.done?'done':'')+'"><input type="checkbox" id="r'+i+'" data-r="'+i+'"'+(r.done?' checked':'')+'><label for="r'+i+'">'+E(r.t)+'</label><button class="iconbtn noprint" data-rr="'+i+'" aria-label="Remove reminder: '+E(r.t)+'" type="button">&times;</button></li>';
+    }).join(''):'<li class="empty" style="border:none;background:none;padding-left:0">No reminders yet.</li>';
+    LI.save('prem',rems);
+  }
+  document.getElementById('remform').addEventListener('submit',function(e){
+    e.preventDefault(); var i=document.getElementById('remin'), t=i.value.trim(); if(!t) return;
+    rems.push({t:t,done:false}); i.value=''; drawRem(); i.focus();
+  });
+  document.getElementById('rem').addEventListener('change',function(e){var i=e.target.dataset.r; if(i===undefined) return; rems[+i].done=e.target.checked; drawRem();});
+  document.getElementById('rem').addEventListener('click',function(e){var i=e.target.dataset.rr; if(i===undefined) return; rems.splice(+i,1); drawRem();});
+  document.getElementById('remclear').onclick=function(){rems=rems.filter(function(r){return !r.done}); drawRem();};
+
+  draw(); lists(); drawRem(); showQuote();
+})();
+</script>
+</body>
+</html>

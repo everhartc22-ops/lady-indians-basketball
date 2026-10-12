@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roster | Millersburg Lady Indians</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  .manage{display:none;gap:8px;flex-wrap:wrap;margin-bottom:18px;padding:16px;background:#fff4cf;border:1px solid var(--gold-d)}
+  body.editing .manage{display:flex}
+  .pcard .edit{display:none;position:absolute;left:8px;top:8px;z-index:3;min-height:44px;padding:0 14px;background:var(--gold);color:#1a0b00;border:0;font-family:var(--head);font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+  body.editing .pcard .edit{display:inline-flex;align-items:center}
+  .photoprev{width:120px;aspect-ratio:4/5;background:var(--maroon);display:grid;place-items:center;overflow:hidden;color:rgba(255,255,255,.4);font-size:.8rem;text-align:center}
+  .photoprev img{width:100%;height:100%;object-fit:cover}
+  .formrow{display:grid;gap:14px}
+  @media(min-width:600px){.formrow.c2{grid-template-columns:1fr 1fr}.formrow.c3{grid-template-columns:1fr 2fr 1fr}.formrow.c4{grid-template-columns:repeat(3,1fr)}}
+  .pcard{position:relative}
+  .empty-roster{padding:40px;text-align:center;border:2px dashed var(--line);color:var(--muted)}
+</style>
+</head>
+<body data-page="roster">
+<main id="main">
+  <div class="pagehead"><div class="wrap"><h1>Team <span>Roster</span></h1><p>Millersburg Lady Indians. Select a player for her profile.</p></div></div>
+  <section class="band"><div class="wrap">
+    <div class="toolbar" style="justify-content:space-between">
+      <div class="toolbar" role="group" aria-label="Filter by position" style="margin:0">
+        <button class="chip" aria-pressed="true" data-p="all">All</button>
+        <button class="chip" aria-pressed="false" data-p="G">Guards</button>
+        <button class="chip" aria-pressed="false" data-p="F">Forwards</button>
+        <button class="chip" aria-pressed="false" data-p="C">Centers</button>
+      </div>
+      <button class="btn sm ghost" id="mgr" aria-pressed="false">Manage roster</button>
+    </div>
+
+    <div class="manage" id="manage">
+      <button class="btn sm" id="addbtn">+ Add player</button>
+      <button class="btn sm ghost" id="export">Export backup</button>
+      <label class="btn sm ghost" style="margin:0;color:var(--text)">Import backup<input type="file" id="import" accept="application/json" class="sr"></label>
+      <button class="btn sm danger" id="wipe">Remove all players</button>
+      <p class="meta" style="flex-basis:100%;margin:6px 0 0;color:var(--muted)">Players are saved in this browser only. Use Export backup to keep a copy or move the roster to another computer.</p>
+    </div>
+
+    <div class="grid g4" id="grid"></div>
+  </div></section>
+</main>
+
+<dialog id="dlg" aria-labelledby="dn"><div class="dlg"></div></dialog>
+
+<dialog id="formdlg" aria-labelledby="ft">
+  <form class="dlg" id="pform">
+    <h2 id="ft">Add player</h2>
+    <div class="formrow c3">
+      <div class="field"><label for="f-num">Number</label><input id="f-num" required inputmode="numeric" maxlength="3"></div>
+      <div class="field"><label for="f-name">Full name</label><input id="f-name" required autocomplete="off"></div>
+      <div class="field"><label for="f-grade">Grade</label><select id="f-grade"><option>Fr</option><option>So</option><option>Jr</option><option>Sr</option></select></div>
+    </div>
+    <div class="formrow c2">
+      <div class="field"><label for="f-pos">Position</label><select id="f-pos"><option>G</option><option>G/F</option><option>F</option><option>F/C</option><option>C</option></select></div>
+      <div class="field"><label for="f-ht">Height</label><input id="f-ht" placeholder="5'8&quot;"></div>
+    </div>
+    <div class="field"><label for="f-bio">Bio / notes</label><textarea id="f-bio" placeholder="Hometown, stats, honors..."></textarea></div>
+    <div class="field">
+      <label for="f-photo">Photo</label>
+      <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+        <div class="photoprev" id="prev">No photo</div>
+        <div>
+          <input type="file" id="f-photo" accept="image/*">
+          <button type="button" class="btn sm ghost" id="rmphoto" style="margin-top:8px">Remove photo</button>
+        </div>
+      </div>
+    </div>
+    <div class="toolbar" style="margin-top:8px">
+      <button class="btn" type="submit">Save player</button>
+      <button class="btn ghost" type="button" id="cancel">Cancel</button>
+      <button class="btn danger" type="button" id="del" style="margin-left:auto">Delete player</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+(function(){
+  var E=LI.esc, roster=LI.getRoster(), filt='all', editing=false, editId=null, photo='';
+  var dlg=document.getElementById('dlg'), fd=document.getElementById('formdlg');
+  var person='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"/><path d="M3 22c0-5 4-8 9-8s9 3 9 8z"/></svg>';
+  function persist(){ if(!LI.saveRoster(roster)) alert('Could not save. Your browser storage may be full or blocked. Try removing a photo.'); roster=LI.getRoster(); draw(); }
+
+  function draw(){
+    var list=roster.filter(function(p){return filt==='all'||String(p.pos).indexOf(filt)>-1});
+    var g=document.getElementById('grid');
+    if(!list.length){ g.innerHTML='<div class="empty-roster" style="grid-column:1/-1">No players yet. Choose <b>Manage roster</b> then <b>Add player</b>.</div>'; return; }
+    g.innerHTML=list.map(function(p){
+      return '<div class="pcard-wrap" style="position:relative"><button class="pcard" data-id="'+E(p.id)+'" style="width:100%"><div class="pphoto">'+(p.photo?'<img src="'+p.photo+'" alt="Photo of '+E(p.name)+'">':person)+'<span class="pnum">'+E(p.num)+'</span></div><div class="pinfo"><h3>'+E(p.name)+'</h3><p>'+E(p.pos)+' &middot; '+E(p.grade)+' &middot; '+E(p.height||'')+'</p></div></button>'+
+        '<button class="edit" data-edit="'+E(p.id)+'" aria-label="Edit '+E(p.name)+'" style="display:'+(editing?'inline-flex':'none')+';position:absolute;left:8px;top:8px;z-index:3;min-height:44px;padding:0 14px;background:var(--gold);color:#1a0b00;border:0;font-family:var(--head);font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;align-items:center">Edit</button></div>';
+    }).join('');
+  }
+
+  /* profile popup */
+  document.getElementById('grid').addEventListener('click',function(e){
+    var ed=e.target.closest('[data-edit]'); if(ed){ openForm(ed.dataset.edit); return; }
+    var b=e.target.closest('.pcard'); if(!b) return;
+    var p=roster.filter(function(x){return x.id===b.dataset.id})[0]; if(!p) return;
+    dlg.querySelector('.dlg').innerHTML='<button class="btn sm ghost x" id="cl">Close</button><p class="kicker" style="color:var(--accent)">#'+E(p.num)+'</p><h2 id="dn">'+E(p.name)+'</h2>'+
+      (p.photo?'<img src="'+p.photo+'" alt="" style="max-width:200px;margin:12px 0;border:3px solid var(--gold)">':'')+
+      '<dl><dt>Position</dt><dd>'+E(p.pos)+'</dd><dt>Grade</dt><dd>'+E(p.grade)+'</dd><dt>Height</dt><dd>'+E(p.height||'')+'</dd></dl><p>'+E(p.bio||'')+'</p>';
+    dlg.showModal(); document.getElementById('cl').addEventListener('click',function(){dlg.close()});
+  });
+  dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
+
+  /* manage mode */
+  var mgr=document.getElementById('mgr');
+  mgr.onclick=function(){
+    editing=!editing; document.body.classList.toggle('editing',editing);
+    mgr.setAttribute('aria-pressed',editing); mgr.textContent=editing?'Done managing':'Manage roster'; draw();
+  };
+
+  /* form */
+  var prev=document.getElementById('prev');
+  function setPrev(){ prev.innerHTML=photo?'<img src="'+photo+'" alt="Photo preview">':'No photo'; }
+  function openForm(id){
+    editId=id||null;
+    var p=id?roster.filter(function(x){return x.id===id})[0]:{};
+    document.getElementById('ft').textContent=id?'Edit player':'Add player';
+    document.getElementById('f-num').value=p.num||'';
+    document.getElementById('f-name').value=p.name||'';
+    document.getElementById('f-grade').value=p.grade||'Fr';
+    document.getElementById('f-pos').value=p.pos||'G';
+    document.getElementById('f-ht').value=p.height||'';
+    document.getElementById('f-bio').value=p.bio||'';
+    document.getElementById('f-photo').value='';
+    photo=p.photo||''; setPrev();
+    document.getElementById('del').style.display=id?'':'none';
+    fd.showModal();
+  }
+  document.getElementById('addbtn').onclick=function(){openForm(null)};
+  document.getElementById('cancel').onclick=function(){fd.close()};
+  fd.addEventListener('click',function(e){if(e.target===fd)fd.close()});
+
+  document.getElementById('f-photo').addEventListener('change',function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var img=new Image(), url=URL.createObjectURL(f);
+    img.onload=function(){
+      var w=400, s=Math.min(1,w/img.width), c=document.createElement('canvas');
+      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      photo=c.toDataURL('image/jpeg',.8); URL.revokeObjectURL(url); setPrev();
+    };
+    img.onerror=function(){alert('That file could not be read as an image.')};
+    img.src=url;
+  });
+  document.getElementById('rmphoto').onclick=function(){photo='';document.getElementById('f-photo').value='';setPrev();};
+
+  document.getElementById('pform').addEventListener('submit',function(e){
+    e.preventDefault();
+    var rec={
+      id:editId||LI.uid(),
+      num:document.getElementById('f-num').value.trim(),
+      name:document.getElementById('f-name').value.trim(),
+      grade:document.getElementById('f-grade').value,
+      pos:document.getElementById('f-pos').value,
+      height:document.getElementById('f-ht').value.trim(),
+      bio:document.getElementById('f-bio').value.trim(),
+      photo:photo
+    };
+    var dup=roster.some(function(x){return x.id!==rec.id&&String(x.num)===rec.num});
+    if(dup&&!confirm('Another player already wears #'+rec.num+'. Save anyway?')) return;
+    var i=roster.findIndex(function(x){return x.id===rec.id});
+    if(i>-1) roster[i]=rec; else roster.push(rec);
+    fd.close(); persist();
+  });
+  document.getElementById('del').onclick=function(){
+    if(!editId||!confirm('Delete this player from the roster?')) return;
+    roster=roster.filter(function(x){return x.id!==editId}); fd.close(); persist();
+  };
+  document.getElementById('wipe').onclick=function(){
+    if(confirm('Remove ALL players, including the sample players? This cannot be undone.')){roster=[];persist();}
+  };
+
+  /* backup */
+  document.getElementById('export').onclick=function(){
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(roster,null,2)],{type:'application/json'}));
+    a.download='lady-indians-roster.json'; a.click();
+  };
+  document.getElementById('import').addEventListener('change',function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{
+        var d=JSON.parse(r.result);
+        if(!Array.isArray(d)) throw 0;
+        if(!confirm('Replace the current roster with '+d.length+' imported player(s)?')) return;
+        roster=d; persist();
+      }catch(x){alert('That file is not a valid roster backup.')}
+    };
+    r.readAsText(f); e.target.value='';
+  });
+
+  document.querySelectorAll('.chip').forEach(function(b){b.addEventListener('click',function(){
+    filt=b.dataset.p; document.querySelectorAll('[data-p]').forEach(function(x){x.setAttribute('aria-pressed',x===b)}); draw();});});
+  draw();
+})();
+</script>
+</body>
+</html>
