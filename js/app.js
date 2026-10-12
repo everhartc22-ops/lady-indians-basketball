@@ -55,7 +55,16 @@
   }
   function saveSchedule(r) { return save("schedule", r); }
 
-  window.LI = { getSchedule: getSchedule, saveSchedule: saveSchedule, getRoster: getRoster, saveRoster: saveRoster, esc: esc, gameDate: gameDate, fmtDate: fmtDate, fmtTime: fmtTime, nextGame: nextGame, load: load, save: save, uid: uid };
+  /* News / spotlight stories: browser-saved copy overrides the samples in data.js */
+  function getNews() {
+    var r = load("news", null);
+    if (!Array.isArray(r)) r = JSON.parse(JSON.stringify(D.news));
+    r.forEach(function (n) { n.id = String(n.id || "n_" + n.date + "_" + n.title); });
+    return r.sort(function (x, y) { return String(y.date).localeCompare(String(x.date)); });
+  }
+  function saveNews(r) { return save("news", r); }
+
+  window.LI = { getNews: getNews, saveNews: saveNews, getSchedule: getSchedule, saveSchedule: saveSchedule, getRoster: getRoster, saveRoster: saveRoster, esc: esc, gameDate: gameDate, fmtDate: fmtDate, fmtTime: fmtTime, nextGame: nextGame, load: load, save: save, uid: uid };
 
   /* Ticker */
   var ng = nextGame();

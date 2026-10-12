@@ -64,7 +64,7 @@
 
   <section class="band">
     <div class="wrap">
-      <div class="sec-head"><h2>In the <span>Spotlight</span></h2><a class="more" href="news.html">All news &rarr;</a></div>
+      <div class="sec-head"><h2>In the <span>Spotlight</span></h2><span style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><a class="more" href="news.html#manage">Add or edit stories</a><a class="more" href="news.html">All news &rarr;</a></span></div>
       <div class="grid g3" id="homenews"></div>
     </div>
   </section>
@@ -112,9 +112,10 @@
   document.getElementById('homeroster').innerHTML=LI.getRoster().slice(0,4).map(function(p){
     return '<a class="pcard reveal" href="roster.html" style="text-decoration:none"><div class="pphoto">'+(p.photo?'<img src="'+p.photo+'" alt="">':person)+'<span class="pnum">'+E(p.num)+'</span></div><div class="pinfo"><h3>'+E(p.name)+'</h3><p>'+E(p.pos)+' &middot; '+E(p.grade)+' &middot; '+E(p.height)+'</p></div></a>';
   }).join('');
-  document.getElementById('homenews').innerHTML=D.news.map(function(n){
-    return '<a class="ncard reveal" href="news.html" style="text-decoration:none"><div class="nimg">'+E(n.tag)+'</div><div class="nbody"><time>'+new Date(n.date+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</time><h3>'+E(n.title)+'</h3><p>'+E(n.excerpt)+'</p></div></a>';
-  }).join('');
+  var spot=LI.getNews().slice(0,3);
+  document.getElementById('homenews').innerHTML=spot.length?spot.map(function(n){
+    return '<a class="ncard reveal" href="news.html" style="text-decoration:none"><div class="nimg" style="overflow:hidden">'+(n.photo?'<img src="'+n.photo+'" alt="" style="width:100%;height:100%;object-fit:cover">':E(n.tag||''))+'</div><div class="nbody"><time>'+new Date(n.date+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</time><h3>'+E(n.title)+'</h3><p>'+E(n.excerpt)+'</p></div></a>';
+  }).join(''):'<p class="empty" style="grid-column:1/-1">No stories yet. <a href="news.html#manage" style="color:var(--accent);font-weight:600">Add the first one</a>.</p>';
   LI.reveal();
 })();
 </script>
