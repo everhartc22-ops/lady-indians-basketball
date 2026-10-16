@@ -235,3 +235,34 @@ html.locked #main{display:none}
 /* keep the top menu on one line */
 .menu a{white-space:nowrap}
 @media(max-width:1340px){.menu a{padding:0 8px;font-size:.95rem;letter-spacing:.05em}.menu li.sep{margin:14px 4px}}
+
+/* ===== Game-photo backgrounds on inner pages =====
+   --ph  = banner photo behind the page title
+   --ph2 = faded photo behind the page's main content
+   Both are set per page below. Paths are relative to this stylesheet. */
+.pagehead{
+  background-image:linear-gradient(100deg,rgba(74,6,21,.92) 0%,rgba(122,12,36,.76) 60%,rgba(122,12,36,.6) 100%),radial-gradient(600px 260px at 85% 0,rgba(242,183,5,.28),transparent 70%),var(--ph,linear-gradient(#8f1230,#6a0a22));
+  background-size:auto,auto,cover;
+  background-position:0 0,0 0,center var(--pos,28%);
+  background-repeat:no-repeat}
+main>section.band:not(.bgp):not(.gallery){position:relative;isolation:isolate}
+main>section.band:not(.bgp):not(.gallery)::before{content:"";position:absolute;inset:0;z-index:-1;
+  background-image:linear-gradient(180deg,rgba(251,248,243,.92),rgba(251,248,243,.80) 45%,rgba(251,248,243,.92)),var(--ph2,none);
+  background-size:cover;background-position:center 30%;background-repeat:no-repeat}
+footer.site{background-image:linear-gradient(rgba(42,3,12,.90),rgba(42,3,12,.95)),url(../images/action-9.jpg);background-size:cover;background-position:center 35%}
+
+body[data-page="schedule"]{--ph:url(../images/action-8.jpg);--pos:18%;--ph2:url(../images/action-5.jpg)}
+body[data-page="roster"]{--ph:url(../images/action-9.jpg);--ph2:url(../images/action-2.jpg)}
+body[data-page="news"]{--ph:url(../images/action-3.jpg);--ph2:url(../images/action-7.jpg)}
+body[data-page="team-playbook"]{--ph:url(../images/action-7.jpg);--ph2:url(../images/action-1.jpg)}
+body[data-page="playbook"]{--ph:url(../images/action-2.jpg);--ph2:url(../images/action-8.jpg)}
+body[data-page="drills"]{--ph:url(../images/action-6.jpg);--pos:30%;--ph2:url(../images/action-9.jpg)}
+body[data-page="practice"]{--ph:url(../images/action-1.jpg);--ph2:url(../images/action-3.jpg)}
+body[data-page="scouting"]{--ph:url(../images/action-5.jpg);--ph2:url(../images/action-4.jpg)}
+body[data-page="coach-password"]{--ph:url(../images/action-9.jpg);--ph2:url(../images/action-5.jpg)}
+
+@media print{
+  .pagehead{background-image:none!important}
+  main>section.band::before{display:none!important}
+  footer.site{background-image:none!important}
+}
