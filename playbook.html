@@ -117,7 +117,13 @@
           <b id="sharetitle">Player link</b>
           <label for="sharelink" class="sr">Player link</label>
           <input id="sharelink" readonly>
-          <div class="pbact"><button class="btn sm" id="sharecopy" type="button">Copy link</button></div>
+          <div class="pbact">
+            <button class="btn sm" id="sharecopy" type="button">Copy link</button>
+            <button class="btn sm" id="sharenative" type="button" style="display:none">Share&hellip;</button>
+            <a class="btn sm ghost" id="sharesms" href="#">Text message</a>
+            <a class="btn sm ghost" id="shareemail" href="#">Email</a>
+            <a class="btn sm ghost" id="shareopen" href="#" target="_blank" rel="noopener">Open as a player</a>
+          </div>
           <p style="margin:10px 0 0;font-size:.88rem" id="sharenote"></p>
         </div>
         <h4 style="font-size:1.3rem;margin:22px 0 8px">Publish on the website</h4>
@@ -495,6 +501,13 @@
       try{
         var code=await PlayView.encode(bundle(b)), link=new URL('players.html',location.href).href+'#d='+code;
         $('sharetitle').textContent='Player link for "'+b.name+'"'; $('sharelink').value=link; $('sharebox').style.display='';
+        var msg='Here is our "'+b.name+'" playbook. Open it to study the plays and watch them animate: '+link;
+        $('sharesms').href='sms:?&body='+encodeURIComponent(msg);
+        $('shareemail').href='mailto:?subject='+encodeURIComponent('Lady Indians playbook: '+b.name)+'&body='+encodeURIComponent(msg);
+        $('shareopen').href=link;
+        sharing={title:'Lady Indians playbook: '+b.name,text:'Here is our "'+b.name+'" playbook. Open it to study the plays.',url:link};
+        $('sharenative').style.display=navigator.share?'':'none';
+        $('sharebox').scrollIntoView({block:'nearest',behavior:'smooth'});
         var local=/^(file:|http:\/\/(localhost|127\.))/.test(location.href), notes=[];
         if(local) notes.push('This link only works once the site is online. Right now the site is only on this computer.');
         if(link.length>6000) notes.push('This link is long ('+link.length+' characters). Some messaging apps may cut it off. Publish the playbook on the website instead, or split it into smaller playbooks.');
@@ -503,6 +516,11 @@
       }catch(err){say('Could not create the link in this browser.');}
     }
   });
+  var sharing=null;
+  $('sharenative').onclick=function(){
+    if(!sharing||!navigator.share) return;
+    navigator.share(sharing).then(function(){say('Shared.');},function(err){ if(err&&err.name!=='AbortError') say('Could not open the share sheet. Use Copy link instead.'); });
+  };
   $('sharecopy').onclick=function(){
     var i=$('sharelink'); i.select();
     var done=function(){say('Link copied.');};
