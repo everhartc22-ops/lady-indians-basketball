@@ -8,6 +8,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<style>
+  .dact{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;align-items:center}
+  .dact .btn{margin-top:0!important;align-self:auto!important}
+  .vtag{display:inline-flex;align-items:center;gap:4px}
+  .vframe{position:relative;width:100%;background:#000;margin:0 auto}
+  .vframe.land{aspect-ratio:16/9}
+  .vframe.port{width:min(360px,100%);height:min(640px,70vh)}
+  .vframe iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .vdlg{max-width:min(820px,96vw)}
+  .vdlg .dlg{padding:18px}
+  .vnote{font-size:.9rem;color:var(--muted);margin:10px 0 0}
+  .vmsg{min-height:1.4em;font-weight:600;margin:6px 0 12px}
+  .vmsg.ok{color:#17803f}
+  .vmsg.bad{color:#b3261e}
+</style>
 </head>
 <body data-page="drills">
 <main id="main">
@@ -28,18 +43,60 @@
           <div class="field"><label for="dc">Skill</label><select id="dc"></select></div>
         </div>
         <div class="field"><label for="dd">Description</label><textarea id="dd"></textarea></div>
+        <div class="field"><label for="dv">Video link (optional)</label><input id="dv" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"><small style="display:block;color:var(--muted);margin-top:6px">YouTube, Instagram, TikTok, Facebook, X or Vimeo.</small></div>
         <button class="btn" type="submit">Save drill</button>
       </form>
     </div>
   </div></section>
 </main>
+
+<dialog id="vdlg" class="vdlg" aria-labelledby="vtitle"><div class="dlg">
+  <button class="btn sm ghost x" id="vclose" type="button">Close</button>
+  <h2 id="vtitle" style="font-size:1.8rem;margin-bottom:12px"></h2>
+  <div id="vwrap"></div>
+  <p class="vnote" id="vnote"></p>
+  <p class="vnote"><a id="vopen" href="#" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-weight:600"></a></p>
+</div></dialog>
+
+<dialog id="vedit" aria-labelledby="vet"><form class="dlg" id="veform">
+  <h2 id="vet" style="font-size:1.8rem">Video link</h2>
+  <p style="color:var(--muted);margin:6px 0 14px" id="vedrill"></p>
+  <div class="field"><label for="vurl">Link</label><input id="vurl" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"></div>
+  <p class="vmsg" id="vmsg" role="status" aria-live="polite"></p>
+  <div class="toolbar"><button class="btn" type="submit">Save link</button><button class="btn ghost" type="button" id="vcancel">Cancel</button><button class="btn danger" type="button" id="vremove" style="margin-left:auto">Remove link</button></div>
+</form></dialog>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
 <script>
 (function(){
   var E=LI.esc, base=LI_DATA.drills, mine=LI.load('drills',[]), cat='All', q='';
   var cats=['Shooting','Ball Handling','Defense','Offense','Transition','Rebounding','Conditioning'];
+  var videos=LI.load('drillvideos',{});
   function all(){return base.concat(mine);}
+
+  /* Turn a pasted link into a safe embed. Only these hosts are ever embedded; anything else opens in a new tab. */
+  function parseVideo(raw){
+    var u; try{ u=new URL(String(raw).trim()); }catch(e){ return null; }
+    if(u.protocol!=='https:') return null;
+    var h=u.hostname.toLowerCase().replace(/^www\./,'').replace(/^m\./,''), pth=u.pathname, m, id=null, link=u.href;
+    if(h==='youtu.be') id=pth.slice(1).split('/')[0];
+    else if(h==='youtube.com'||h==='music.youtube.com'||h==='youtube-nocookie.com'){
+      if(pth==='/watch') id=u.searchParams.get('v');
+      else if((m=pth.match(/^\/(shorts|embed|live|v)\/([\w-]{11})/))) id=m[2];
+    }
+    if(id&&/^[\w-]{11}$/.test(id)){
+      var st=parseInt(u.searchParams.get('t')||u.searchParams.get('start')||'0',10)||0;
+      return {platform:'YouTube',shape:/^\/shorts\//.test(pth)?'port':'land',url:link,src:'https://www.youtube-nocookie.com/embed/'+id+'?rel=0&playsinline=1'+(st?'&start='+st:'')};
+    }
+    if(h==='vimeo.com'||h==='player.vimeo.com'){ m=pth.match(/(\d{6,})/); if(m) return {platform:'Vimeo',shape:'land',url:link,src:'https://player.vimeo.com/video/'+m[1]}; }
+    if(h==='instagram.com'){ m=pth.match(/^\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([\w-]+)/); if(m) return {platform:'Instagram',shape:'port',url:link,src:'https://www.instagram.com/'+(m[1]==='reels'?'reel':m[1])+'/'+m[2]+'/embed/'}; }
+    if(h==='tiktok.com'){ m=pth.match(/\/video\/(\d+)/); if(m) return {platform:'TikTok',shape:'port',url:link,src:'https://www.tiktok.com/embed/v2/'+m[1]}; }
+    if(h==='facebook.com'||h==='fb.watch'){
+      if(h==='fb.watch'||/\/(videos|reel)\//.test(pth)||/^\/watch\/?$/.test(pth)) return {platform:'Facebook',shape:'land',url:link,src:'https://www.facebook.com/plugins/video.php?href='+encodeURIComponent(link)+'&show_text=false'};
+    }
+    if(h==='x.com'||h==='twitter.com'){ m=pth.match(/\/status\/(\d+)/); if(m) return {platform:'X',shape:'port',url:link,src:'https://platform.twitter.com/embed/Tweet.html?id='+m[1]}; }
+    return {platform:h,shape:'land',url:link,src:null};
+  }
   var catsEl=document.getElementById('cats');
   catsEl.innerHTML=['All'].concat(cats).map(function(c){return '<button class="chip" aria-pressed="'+(c==='All')+'" data-c="'+c+'">'+c+'</button>';}).join('');
   document.getElementById('dc').innerHTML=cats.map(function(c){return '<option>'+c+'</option>';}).join('');
@@ -47,12 +104,16 @@
     var list=all().filter(function(d){return (cat==='All'||d.cat===cat)&&(d.name+' '+d.desc).toLowerCase().indexOf(q)>-1;});
     document.getElementById('count').textContent=list.length+' drill'+(list.length===1?'':'s');
     document.getElementById('grid').innerHTML=list.map(function(d){
-      return '<article class="drill"><div class="meta"><span class="tag gold">'+E(d.cat)+'</span><span class="tag">'+E(d.level||'Custom')+'</span></div><h3>'+E(d.name)+'</h3><p>'+E(d.desc)+'</p><p style="font-size:.8rem">Players: '+E(d.players||'Any')+'</p><button class="btn sm" data-add="'+E(d.id)+'">Add to practice plan</button></article>';
+      return '<article class="drill"><div class="meta"><span class="tag gold">'+E(d.cat)+'</span><span class="tag">'+E(d.level||'Custom')+'</span>'+(videos[d.id]?'<span class="tag vtag">Video</span>':'')+'</div><h3>'+E(d.name)+'</h3><p>'+E(d.desc)+'</p><p style="font-size:.8rem">Players: '+E(d.players||'Any')+'</p><div class="dact"><button class="btn sm" data-add="'+E(d.id)+'">Add to practice plan</button>'+
+        (videos[d.id]?'<button class="btn sm ghost" data-watch="'+E(d.id)+'">&#9654; Watch video</button><button class="btn sm ghost" data-vid="'+E(d.id)+'" aria-label="Edit video link for '+E(d.name)+'">Edit link</button>':'<button class="btn sm ghost" data-vid="'+E(d.id)+'" aria-label="Add a video link to '+E(d.name)+'">Add video link</button>')+'</div></article>';
     }).join('')||'<p class="empty">No drills match.</p>';
   }
   catsEl.addEventListener('click',function(e){var b=e.target.closest('.chip');if(!b)return;cat=b.dataset.c;catsEl.querySelectorAll('.chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)});draw();});
   document.getElementById('q').addEventListener('input',function(e){q=e.target.value.toLowerCase();draw();});
   document.getElementById('grid').addEventListener('click',function(e){
+    var wid=e.target.dataset.watch, vid=e.target.dataset.vid;
+    if(wid){ watch(wid); return; }
+    if(vid){ editLink(vid); return; }
     var id=e.target.dataset.add; if(!id)return;
     var d=all().filter(function(x){return x.id===id})[0], cart=LI.load('cart',[]);
     cart.push({name:d.name,min:10,notes:d.desc}); LI.save('cart',cart);
@@ -60,9 +121,70 @@
   });
   document.getElementById('addform').addEventListener('submit',function(e){
     e.preventDefault();
-    mine.push({id:'c'+LI.uid(),name:document.getElementById('dn').value.trim(),cat:document.getElementById('dc').value,desc:document.getElementById('dd').value.trim(),players:'Any',level:'Custom'});
+    var nid='c'+LI.uid(), link=document.getElementById('dv').value.trim();
+    if(link&&!parseVideo(link)){ alert('That video link needs to be a full web address starting with https://'); document.getElementById('dv').focus(); return; }
+    mine.push({id:nid,name:document.getElementById('dn').value.trim(),cat:document.getElementById('dc').value,desc:document.getElementById('dd').value.trim(),players:'Any',level:'Custom'});
+    if(link){ videos[nid]=link; LI.save('drillvideos',videos); }
     LI.save('drills',mine); e.target.reset(); draw();
   });
+
+  /* ---------- Video playback (click to load) ---------- */
+  var vdlg=document.getElementById('vdlg'), vwrap=document.getElementById('vwrap');
+  function drillById(id){return all().filter(function(x){return x.id===id})[0];}
+  function watch(id){
+    var d=drillById(id), v=parseVideo(videos[id]||''); if(!d||!v) return;
+    document.getElementById('vtitle').textContent=d.name;
+    vwrap.innerHTML='';
+    var open=document.getElementById('vopen'); open.href=v.url; open.textContent='Open on '+v.platform+' in a new tab';
+    if(v.src){
+      var box=document.createElement('div'); box.className='vframe '+v.shape;
+      var f=document.createElement('iframe');
+      f.src=v.src; f.title=d.name+' video on '+v.platform; f.loading='lazy'; f.allowFullscreen=true;
+      f.setAttribute('allow','autoplay; encrypted-media; picture-in-picture; fullscreen');
+      f.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
+      f.setAttribute('sandbox','allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox');
+      box.appendChild(f); vwrap.appendChild(box);
+      document.getElementById('vnote').textContent='This video is loaded from '+v.platform+'. If it does not play (private or restricted videos), use the link below.';
+    } else {
+      document.getElementById('vnote').textContent='This site cannot be played inside the page, so it opens in a new tab.';
+    }
+    vdlg.showModal();
+  }
+  function stopVideo(){ vwrap.innerHTML=''; }
+  vdlg.addEventListener('close',stopVideo);
+  document.getElementById('vclose').onclick=function(){vdlg.close();};
+  vdlg.addEventListener('click',function(e){if(e.target===vdlg)vdlg.close();});
+
+  var vedit=document.getElementById('vedit'), editing=null, vurl=document.getElementById('vurl'), vmsg=document.getElementById('vmsg');
+  function editLink(id){
+    var d=drillById(id); if(!d) return; editing=id;
+    document.getElementById('vedrill').textContent=d.name;
+    vurl.value=videos[id]||''; vmsg.textContent=''; vmsg.className='vmsg';
+    document.getElementById('vremove').style.display=videos[id]?'':'none';
+    vedit.showModal(); vurl.focus(); hint();
+  }
+  function hint(){
+    var t=vurl.value.trim(); vmsg.className='vmsg';
+    if(!t){vmsg.textContent='';return;}
+    var v=parseVideo(t);
+    if(!v){ vmsg.textContent='Enter a full link starting with https://'; vmsg.className='vmsg bad'; }
+    else if(v.src){ vmsg.textContent=v.platform+' video found. It will play on this page.'; vmsg.className='vmsg ok'; }
+    else { vmsg.textContent='Link accepted. It will open in a new tab.'; vmsg.className='vmsg ok'; }
+  }
+  vurl.addEventListener('input',hint);
+  document.getElementById('vcancel').onclick=function(){vedit.close();};
+  vedit.addEventListener('click',function(e){if(e.target===vedit)vedit.close();});
+  document.getElementById('veform').addEventListener('submit',function(e){
+    e.preventDefault(); var t=vurl.value.trim();
+    if(!t){ delete videos[editing]; }
+    else { var v=parseVideo(t); if(!v){ hint(); vurl.focus(); return; } videos[editing]=v.url; }
+    LI.save('drillvideos',videos); vedit.close(); draw();
+  });
+  document.getElementById('vremove').onclick=function(){
+    if(!confirm('Remove the video link from this drill?')) return;
+    delete videos[editing]; LI.save('drillvideos',videos); vedit.close(); draw();
+  };
+
   draw();
 })();
 </script>
