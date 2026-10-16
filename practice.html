@@ -204,7 +204,7 @@
 (function(){
   var E=LI.esc, blocks=LI.load('cart',[]), plans=LI.load('plans',[]), curId=null;
   var drills=LI_DATA.drills.concat(LI.load('drills',[]));
-  document.getElementById('pick').innerHTML=drills.map(function(d,i){return '<option value="'+i+'">'+E(d.name)+' </option>';}).join('');
+  document.getElementById('pick').innerHTML=drills.length?drills.map(function(d,i){return '<option value="'+i+'">'+E(d.name)+' </option>';}).join(''):'<option value="">No drills yet. Add some in the Drill Library.</option>';
   var now0=new Date(); document.getElementById('date').value=now0.getFullYear()+'-'+String(now0.getMonth()+1).padStart(2,'0')+'-'+String(now0.getDate()).padStart(2,'0');
 
   function fmt(mins){var h=Math.floor(mins/60)%24,m=mins%60,ap=h>=12?'PM':'AM';return ((h%12)||12)+':'+String(m).padStart(2,'0')+' '+ap;}
@@ -228,7 +228,7 @@
   });
   document.getElementById('blocks').addEventListener('change',function(e){var i=e.target.dataset.m; if(i===undefined) return; blocks[+i].min=Math.max(1,parseInt(e.target.value,10)||1); draw();});
   document.getElementById('start').addEventListener('input',draw);
-  document.getElementById('addpick').onclick=function(){var d=drills[+document.getElementById('pick').value];blocks.push({name:d.name,min:+document.getElementById('pm').value||10,notes:d.desc});draw();};
+  document.getElementById('addpick').onclick=function(){var d=drills[+document.getElementById('pick').value]; if(!d) return;blocks.push({name:d.name,min:+document.getElementById('pm').value||10,notes:d.desc});draw();};
   document.getElementById('addcustom').onclick=function(){var n=document.getElementById('cn').value.trim();if(!n)return;blocks.push({name:n,min:+document.getElementById('cm').value||10,notes:''});document.getElementById('cn').value='';draw();};
   document.getElementById('clear').onclick=function(){if(confirm('Clear all blocks?')){blocks=[];curId=null;draw();}};
   document.getElementById('print').onclick=function(){window.print();};

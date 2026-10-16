@@ -57,18 +57,6 @@ window.LI_DATA = {
       body: "Sample article. Add game-by-game notes, top performers and what the coaches learned." }
   ],
 
-  drills: [
-    { id: "d1", name: "Mikan Drill", cat: "Shooting", players: "1+", level: "Beginner", desc: "Alternate layups on each side of the rim using the backboard, focusing on footwork, soft touch and quick rhythm." },
-    { id: "d2", name: "Form Shooting", cat: "Shooting", players: "1-2 per basket", level: "Beginner", desc: "Close-range one-hand shooting. Elbow under ball, follow-through, hold the finish. Move out as form stays clean." },
-    { id: "d3", name: "Spot Shooting (5 Spots)", cat: "Shooting", players: "2-3 per basket", level: "Intermediate", desc: "Shoot from five spots around the arc. Shooter, rebounder and passer rotate. Track makes and set a goal each round." },
-    { id: "d4", name: "Zig-Zag Defensive Slides", cat: "Defense", players: "Full team", level: "Beginner", desc: "Slide corner to corner without crossing feet. Drop-step and change direction at each cone, staying low with active hands." },
-    { id: "d5", name: "Closeout Drill", cat: "Defense", players: "Pairs", level: "Intermediate", desc: "Sprint out, chop feet, hand up to contest the shot, then slide to stop the drive. Emphasize balance on arrival." },
-    { id: "d6", name: "4-on-4 Shell Drill", cat: "Defense", players: "8+", level: "Intermediate", desc: "Teach help-side positioning, rotations and talking. The offense passes and cuts while the defense moves on every pass." },
-    { id: "d7", name: "Three-Man Weave", cat: "Ball Handling", players: "3 per lane", level: "Beginner", desc: "Pass and follow behind the pass while running the court, finishing with a layup. Builds spacing, timing and conditioning." },
-    { id: "d8", name: "Two-Ball Dribbling", cat: "Ball Handling", players: "Full team", level: "Intermediate", desc: "Dribble two balls together and alternately, stationary then moving. Eyes up, low and tight." },
-    { id: "d9", name: "Full-Court 5-on-0 Transition", cat: "Transition", players: "5+", level: "Intermediate", desc: "Run lanes and fill spots on the fast break with no defense, then add live defenders as it improves." },
-    { id: "d10", name: "Shell Offense: Pass & Cut", cat: "Offense", players: "5+", level: "Beginner", desc: "Pass and cut to the ball side or replace the spot. Teaches spacing, reading the defender and constant movement." },
-    { id: "d11", name: "Box-Out & Rebound", cat: "Rebounding", players: "Pairs", level: "Beginner", desc: "Find a body, make contact, pivot and seal. Secure the rebound with two hands, chin the ball and outlet." },
-    { id: "d12", name: "Suicides / Conditioning Lines", cat: "Conditioning", players: "Full team", level: "All", desc: "Timed baseline-to-line sprints. Set a time goal as a team. Finish with a cool-down stretch." }
-  ]
+  // Drills are created in the Drill Library (saved in the browser), so none are built in.
+  drills: []
 };

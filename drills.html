@@ -106,7 +106,7 @@
     document.getElementById('grid').innerHTML=list.map(function(d){
       return '<article class="drill"><div class="meta"><span class="tag gold">'+E(d.cat)+'</span><span class="tag">'+E(d.level||'Custom')+'</span>'+(videos[d.id]?'<span class="tag vtag">Video</span>':'')+'</div><h3>'+E(d.name)+'</h3><p>'+E(d.desc)+'</p><p style="font-size:.8rem">Players: '+E(d.players||'Any')+'</p><div class="dact"><button class="btn sm" data-add="'+E(d.id)+'">Add to practice plan</button>'+
         (videos[d.id]?'<button class="btn sm ghost" data-watch="'+E(d.id)+'">&#9654; Watch video</button><button class="btn sm ghost" data-vid="'+E(d.id)+'" aria-label="Edit video link for '+E(d.name)+'">Edit link</button>':'<button class="btn sm ghost" data-vid="'+E(d.id)+'" aria-label="Add a video link to '+E(d.name)+'">Add video link</button>')+'</div></article>';
-    }).join('')||'<p class="empty">No drills match.</p>';
+    }).join('')||'<p class="empty">'+(all().length?'No drills match.':'No drills yet. Use "Add a custom drill" below to create your first one.')+'</p>';
   }
   catsEl.addEventListener('click',function(e){var b=e.target.closest('.chip');if(!b)return;cat=b.dataset.c;catsEl.querySelectorAll('.chip').forEach(function(x){x.setAttribute('aria-pressed',x===b)});draw();});
   document.getElementById('q').addEventListener('input',function(e){q=e.target.value.toLowerCase();draw();});
