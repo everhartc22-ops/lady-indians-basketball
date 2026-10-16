@@ -32,6 +32,22 @@
     .printhead .ptitle{font-family:var(--head);font-size:1.4rem;font-weight:700;text-transform:uppercase;margin-top:6px;color:#000}
     .designer{display:block!important}
   }
+  .tnames{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .tn{display:flex;gap:4px;align-items:center}
+  .tn input{width:150px}
+  .arow{display:grid;grid-template-columns:1fr 170px;gap:10px;align-items:center;background:var(--bg);border:1px solid var(--line);padding:4px 6px 4px 12px;min-height:52px}
+  .arow small{color:var(--muted)}
+  .arow select{min-height:44px}
+  .assign{display:grid;gap:8px;max-height:420px;overflow:auto;margin:12px 0}
+  @media(max-width:520px){.arow{grid-template-columns:1fr}.arow select{width:100%}}
+  .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:6px}
+  .team{background:var(--bg);border:1px solid var(--line);border-top:5px solid var(--tc,var(--maroon));padding:12px 14px}
+  .team h4{font-size:1.4rem;margin-bottom:8px}
+  .team h4 span{font-family:var(--body);font-size:.85rem;color:var(--muted);font-weight:500}
+  .team ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+  .team li.none{color:var(--muted);font-style:italic}
+  .tout{margin:12px 0 0;font-size:.95rem}
+  @media print{.team{background:#fff;border-color:#777;border-top-color:#000}.teams{grid-template-columns:repeat(3,1fr)}.team h4 span{color:#000}}
   .wl{display:block;height:2em;border-bottom:1.5px solid var(--muted)}
   .courts{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
   .courts.full{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
@@ -97,6 +113,20 @@
           <button class="btn sm" type="submit">Add</button>
         </form>
         <button class="btn sm ghost noprint" id="remclear" type="button" style="margin-top:10px">Clear completed</button>
+      </section>
+      <section aria-labelledby="th" style="margin-top:26px" id="teamsec">
+        <h3 id="th" style="font-size:1.6rem;margin-bottom:12px">Teams</h3>
+        <div class="noprint">
+          <p class="meta" style="margin:0 0 10px">Pick a team for each player on your <a href="roster.html" style="color:var(--accent);font-weight:600">roster</a>. Teams print with the plan.</p>
+          <div class="tnames" id="tnames"></div>
+          <div class="toolbar">
+            <button class="btn sm ghost" id="taddteam" type="button">+ Add team</button>
+            <button class="btn sm ghost" id="trandom" type="button">Split randomly</button>
+            <button class="btn sm ghost" id="tclear" type="button">Clear teams</button>
+          </div>
+          <div class="assign" id="tassign" role="group" aria-label="Assign players to teams"></div>
+        </div>
+        <div class="teams" id="tshow" aria-live="polite"></div>
       </section>
       <section aria-labelledby="ch" style="margin-top:26px" id="courtsec">
         <h3 id="ch" style="font-size:1.6rem;margin-bottom:12px">Court Diagrams</h3>
@@ -176,11 +206,12 @@
       rems=p.reminders?JSON.parse(JSON.stringify(p.reminders)):[]; drawRem();
       if(p.quote&&p.quote.blank){q={text:'',by:'',manual:false,blank:true};} else if(p.quote&&p.quote.text){q={text:p.quote.text,by:p.quote.by||'',manual:true,blank:false};} else {q.manual=false;q.blank=false;} showQuote();
       if(p.courts){document.getElementById('ccount').value=String(p.courts.n);document.getElementById('ctype').value=p.courts.type;drawCourts();}
+      tstate=p.teams?JSON.parse(JSON.stringify(p.teams)):{teams:[{id:'t1',name:'Maroon'},{id:'t2',name:'White'}],assign:{}}; drawTeams();
       draw();}
     if(d&&confirm('Delete this plan?')){plans=plans.filter(function(x){return x.id!==d});LI.save('plans',plans);lists();}
   });
   document.getElementById('save').onclick=function(){
-    var rec={id:curId||LI.uid(),title:document.getElementById('title').value.trim()||'Untitled practice',date:document.getElementById('date').value,start:document.getElementById('start').value,blocks:JSON.parse(JSON.stringify(blocks)),reminders:JSON.parse(JSON.stringify(rems)),quote:{text:q.text,by:q.by,blank:!!q.blank},courts:{n:+document.getElementById('ccount').value,type:document.getElementById('ctype').value}};
+    var rec={id:curId||LI.uid(),title:document.getElementById('title').value.trim()||'Untitled practice',date:document.getElementById('date').value,start:document.getElementById('start').value,blocks:JSON.parse(JSON.stringify(blocks)),reminders:JSON.parse(JSON.stringify(rems)),quote:{text:q.text,by:q.by,blank:!!q.blank},courts:{n:+document.getElementById('ccount').value,type:document.getElementById('ctype').value},teams:JSON.parse(JSON.stringify(tstate))};
     var i=plans.findIndex(function(x){return x.id===rec.id}); if(i>-1)plans[i]=rec; else plans.unshift(rec);
     curId=rec.id; LI.save('plans',plans); lists();
   };
@@ -275,7 +306,69 @@
   document.getElementById('ccount').addEventListener('change',drawCourts);
   document.getElementById('ctype').addEventListener('change',drawCourts);
 
-  draw(); lists(); drawRem(); showQuote(); drawCourts();
+  /* ---------- Teams (from the roster) ---------- */
+  var TCOL=['#7a0c24','#c99600','#2b6cb0','#2f855a','#6b46c1','#c05621'];
+  var tstate=LI.load('pteams',null)||{teams:[{id:'t1',name:'Maroon'},{id:'t2',name:'White'}],assign:{}};
+  function $t(id){return document.getElementById(id)}
+  function drawNames(){
+    $t('tnames').innerHTML=tstate.teams.map(function(t,i){
+      return '<div class="tn"><label for="tn'+i+'" class="sr">Name of team '+(i+1)+'</label><input id="tn'+i+'" data-tn="'+i+'" value="'+E(t.name)+'" maxlength="24"><button class="iconbtn" type="button" data-trm="'+i+'" aria-label="Remove team '+E(t.name)+'">&times;</button></div>';
+    }).join('');
+  }
+  function drawAssign(){
+    var R=LI.getRoster(), T=tstate.teams, A=tstate.assign;
+    $t('tassign').innerHTML=R.length?R.map(function(pl){
+      var cur=A[pl.id]||'';
+      return '<div class="arow"><span><b>#'+E(pl.num)+'</b> '+E(pl.name)+' <small>'+E(pl.pos||'')+'</small></span><select data-ap="'+E(pl.id)+'" aria-label="Team for '+E(pl.name)+'"><option value="">Unassigned</option>'+
+        T.map(function(t){return '<option value="'+t.id+'"'+(cur===t.id?' selected':'')+'>'+E(t.name)+'</option>';}).join('')+
+        '<option value="out"'+(cur==='out'?' selected':'')+'>Not at practice</option></select></div>';
+    }).join(''):'<p class="empty">No players on the roster yet. <a href="roster.html" style="color:var(--accent)">Add players on the Roster page</a>.</p>';
+  }
+  function drawShow(){
+    var R=LI.getRoster(), T=tstate.teams, A=tstate.assign, any=false;
+    var cols=T.map(function(t,i){
+      var m=R.filter(function(pl){return A[pl.id]===t.id}); if(m.length) any=true;
+      return '<div class="team" style="--tc:'+TCOL[i%TCOL.length]+'"><h4>'+E(t.name)+' <span>('+m.length+')</span></h4><ul>'+
+        (m.map(function(pl){return '<li><b>#'+E(pl.num)+'</b> '+E(pl.name)+'</li>';}).join('')||'<li class="none">No players yet</li>')+'</ul></div>';
+    }).join('');
+    var out=R.filter(function(pl){return A[pl.id]==='out'}); if(out.length) any=true;
+    $t('tshow').innerHTML=cols+(out.length?'<p class="tout" style="grid-column:1/-1"><b>Not at practice:</b> '+out.map(function(pl){return '#'+E(pl.num)+' '+E(pl.name);}).join(', ')+'</p>':'');
+    $t('teamsec').classList.toggle('noprint',!any);
+    LI.save('pteams',tstate);
+  }
+  function drawTeams(){ drawNames(); drawAssign(); drawShow(); }
+  $t('tnames').addEventListener('input',function(e){
+    var i=e.target.dataset.tn; if(i===undefined) return;
+    tstate.teams[+i].name=e.target.value.trim()||('Team '+(+i+1)); drawAssign(); drawShow();
+  });
+  $t('tnames').addEventListener('click',function(e){
+    var i=e.target.dataset.trm; if(i===undefined) return;
+    if(tstate.teams.length<2){alert('Keep at least one team.');return;}
+    var id=tstate.teams[+i].id; tstate.teams.splice(+i,1);
+    Object.keys(tstate.assign).forEach(function(k){ if(tstate.assign[k]===id) delete tstate.assign[k]; });
+    drawTeams();
+  });
+  $t('taddteam').onclick=function(){
+    if(tstate.teams.length>=6){alert('You can have up to 6 teams.');return;}
+    tstate.teams.push({id:'t'+LI.uid(),name:'Team '+(tstate.teams.length+1)}); drawTeams();
+    var ins=$t('tnames').querySelectorAll('input'); ins[ins.length-1].focus();
+  };
+  $t('tassign').addEventListener('change',function(e){
+    var id=e.target.dataset.ap; if(id===undefined) return;
+    if(e.target.value) tstate.assign[id]=e.target.value; else delete tstate.assign[id];
+    drawShow();
+  });
+  $t('trandom').onclick=function(){
+    var R=LI.getRoster().filter(function(pl){return tstate.assign[pl.id]!=='out'});
+    if(!R.length){alert('No players to split. Add players to the roster first.');return;}
+    if(Object.keys(tstate.assign).some(function(k){return tstate.assign[k]!=='out';})&&!confirm('Replace the current team assignments with a random split?')) return;
+    for(var i=R.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),x=R[i];R[i]=R[j];R[j]=x;}
+    R.forEach(function(pl,k){ tstate.assign[pl.id]=tstate.teams[k%tstate.teams.length].id; });
+    drawTeams();
+  };
+  $t('tclear').onclick=function(){ if(confirm('Clear all team assignments?')){ tstate.assign={}; drawTeams(); } };
+
+  draw(); lists(); drawRem(); showQuote(); drawCourts(); drawTeams();
 })();
 </script>
 </body>
