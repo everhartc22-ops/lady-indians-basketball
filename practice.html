@@ -32,6 +32,23 @@
     .printhead .ptitle{font-family:var(--head);font-size:1.4rem;font-weight:700;text-transform:uppercase;margin-top:6px;color:#000}
     .designer{display:block!important}
   }
+  .wl{display:block;height:2em;border-bottom:1.5px solid var(--muted)}
+  .courts{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+  .courts.full{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+  .cfig{margin:0;background:#fff;border:1px solid var(--line);padding:8px;break-inside:avoid}
+  .cfig canvas{width:100%;height:auto;display:block}
+  .cfig .cap{display:flex;gap:8px;align-items:flex-end;font-size:.85rem;color:var(--muted);margin-top:8px}
+  .cfig .cap span.line{flex:1;border-bottom:1px solid #777;min-height:1.5em}
+  .courtctl{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+  .courtctl .field{margin:0;min-width:160px}
+  @media print{
+    #courtsec{break-before:auto}
+    .courts{grid-template-columns:1fr 1fr}
+    .courts.full{grid-template-columns:repeat(3,1fr)}
+    .cfig{border-color:#999}
+    .cfig .cap{color:#000}
+    .wl{border-color:#000}
+  }
   @media print{.qotd{border-color:#444;background:#fff}.qotd .lbl{color:#000}.rem li{background:#fff;border-color:#999}}
 </style>
 <script>window.LI_GATED=true</script>
@@ -57,6 +74,7 @@
         <div class="toolbar noprint" style="margin:12px 0 0">
           <button class="btn sm ghost" id="qnext" type="button">New quote</button>
           <button class="btn sm ghost" id="qown" type="button" aria-expanded="false" aria-controls="qedit">Write my own</button>
+          <button class="btn sm ghost" id="qblank" type="button" aria-pressed="false">Leave blank to hand-write</button>
         </div>
         <div class="qedit noprint" id="qedit">
           <div class="field"><label for="qin">Quote</label><textarea id="qin" style="min-height:70px"></textarea></div>
@@ -79,6 +97,14 @@
           <button class="btn sm" type="submit">Add</button>
         </form>
         <button class="btn sm ghost noprint" id="remclear" type="button" style="margin-top:10px">Clear completed</button>
+      </section>
+      <section aria-labelledby="ch" style="margin-top:26px" id="courtsec">
+        <h3 id="ch" style="font-size:1.6rem;margin-bottom:12px">Court Diagrams</h3>
+        <div class="courtctl noprint">
+          <div class="field"><label for="ccount">Blank courts to print</label><select id="ccount"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>6</option><option>8</option></select></div>
+          <div class="field"><label for="ctype">Court type</label><select id="ctype"><option value="half">Half court</option><option value="full">Full court</option></select></div>
+        </div>
+        <div class="courts" id="courts"></div>
       </section>
       <div class="toolbar noprint"><button class="btn sm" id="save">Save plan</button><button class="btn sm ghost" id="print">Print</button><button class="btn sm danger" id="clear">Clear</button></div>
     </div>
@@ -105,6 +131,7 @@
 </main>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
+<script src="js/playview.js"></script>
 <script>
 (function(){
   var E=LI.esc, blocks=LI.load('cart',[]), plans=LI.load('plans',[]), curId=null;
@@ -147,12 +174,13 @@
     if(o){var p=plans.filter(function(x){return x.id===o})[0];curId=p.id;blocks=JSON.parse(JSON.stringify(p.blocks));
       document.getElementById('title').value=p.title;document.getElementById('date').value=p.date;document.getElementById('start').value=p.start;
       rems=p.reminders?JSON.parse(JSON.stringify(p.reminders)):[]; drawRem();
-      if(p.quote&&p.quote.text){q={text:p.quote.text,by:p.quote.by||'',manual:true};} else q.manual=false; showQuote();
+      if(p.quote&&p.quote.blank){q={text:'',by:'',manual:false,blank:true};} else if(p.quote&&p.quote.text){q={text:p.quote.text,by:p.quote.by||'',manual:true,blank:false};} else {q.manual=false;q.blank=false;} showQuote();
+      if(p.courts){document.getElementById('ccount').value=String(p.courts.n);document.getElementById('ctype').value=p.courts.type;drawCourts();}
       draw();}
     if(d&&confirm('Delete this plan?')){plans=plans.filter(function(x){return x.id!==d});LI.save('plans',plans);lists();}
   });
   document.getElementById('save').onclick=function(){
-    var rec={id:curId||LI.uid(),title:document.getElementById('title').value.trim()||'Untitled practice',date:document.getElementById('date').value,start:document.getElementById('start').value,blocks:JSON.parse(JSON.stringify(blocks)),reminders:JSON.parse(JSON.stringify(rems)),quote:{text:q.text,by:q.by}};
+    var rec={id:curId||LI.uid(),title:document.getElementById('title').value.trim()||'Untitled practice',date:document.getElementById('date').value,start:document.getElementById('start').value,blocks:JSON.parse(JSON.stringify(blocks)),reminders:JSON.parse(JSON.stringify(rems)),quote:{text:q.text,by:q.by,blank:!!q.blank},courts:{n:+document.getElementById('ccount').value,type:document.getElementById('ctype').value}};
     var i=plans.findIndex(function(x){return x.id===rec.id}); if(i>-1)plans[i]=rec; else plans.unshift(rec);
     curId=rec.id; LI.save('plans',plans); lists();
   };
@@ -179,21 +207,29 @@
     return Math.floor(t.getTime()/86400000);
   }
   function showQuote(){
+    var bq=document.getElementById('qtext'), by=document.getElementById('qby'), qb=document.getElementById('qblank');
+    qb.setAttribute('aria-pressed',!!q.blank); qb.textContent=q.blank?'Show a quote':'Leave blank to hand-write';
+    if(q.blank){
+      bq.innerHTML='<span class="noprint" style="color:var(--muted);font-size:1rem">Left blank. Two ruled lines will print so you can write the quote by hand.</span><span class="wl"></span><span class="wl"></span>';
+      by.textContent=''; return;
+    }
     if(!q.manual){ var a=QUOTES[(dayIndex()+qoff)%QUOTES.length]; q.text=a[0]; q.by=a[1]; }
     document.getElementById('qtext').textContent='\u201C'+q.text+'\u201D';
     document.getElementById('qby').textContent=q.by?'\u2014 '+q.by:'';
   }
-  document.getElementById('qnext').onclick=function(){q.manual=false;qoff++;showQuote();};
+  document.getElementById('qnext').onclick=function(){q.blank=false;q.manual=false;qoff++;showQuote();};
+  document.getElementById('qblank').onclick=function(){ q.blank=!q.blank; if(q.blank){ qedit.classList.remove('open'); qown.setAttribute('aria-expanded','false'); qown.textContent='Write my own'; } showQuote(); };
   var qedit=document.getElementById('qedit'), qown=document.getElementById('qown');
   qown.onclick=function(){
     var open=!qedit.classList.contains('open'); qedit.classList.toggle('open',open); qown.setAttribute('aria-expanded',open);
     qown.textContent=open?'Use daily quote':'Write my own';
     if(open){ document.getElementById('qin').value=q.manual?q.text:''; document.getElementById('qauth').value=q.manual?q.by:''; document.getElementById('qin').focus(); }
-    else { q.manual=false; showQuote(); }
+    else { q.manual=false; q.blank=false; showQuote(); }
+    if(open&&q.blank){q.blank=false;showQuote();}
   };
   function customQuote(){
     var t=document.getElementById('qin').value.trim();
-    if(t){ q={text:t,by:document.getElementById('qauth').value.trim(),manual:true}; showQuote(); }
+    if(t){ q={text:t,by:document.getElementById('qauth').value.trim(),manual:true,blank:false}; showQuote(); }
   }
   document.getElementById('qin').addEventListener('input',customQuote);
   document.getElementById('qauth').addEventListener('input',customQuote);
@@ -223,7 +259,23 @@
   }
   window.addEventListener('beforeprint',fillPrintHead);
 
-  draw(); lists(); drawRem(); showQuote();
+  /* ---------- Blank court diagrams (print-friendly, white with dark lines) ---------- */
+  var saved=LI.load('pcourts',{n:2,type:'half'});
+  document.getElementById('ccount').value=String(saved.n); document.getElementById('ctype').value=saved.type;
+  function drawCourts(){
+    var n=+document.getElementById('ccount').value, type=document.getElementById('ctype').value, box=document.getElementById('courts');
+    LI.save('pcourts',{n:n,type:type});
+    box.className='courts'+(type==='full'?' full':'');
+    document.getElementById('courtsec').classList.toggle('noprint',n===0);
+    var fake={court:type,steps:[{off:[],def:[],ball:null,lines:[]}]}, html='';
+    for(var i=0;i<n;i++) html+='<figure class="cfig"><canvas width="600" height="'+(type==='full'?1128:564)+'" role="img" aria-label="Blank '+type+' court diagram '+(i+1)+'"></canvas><figcaption class="cap">Drill / play: <span class="line"></span></figcaption></figure>';
+    box.innerHTML=html||'<p class="empty noprint">No court diagrams. Choose how many to include.</p>';
+    box.querySelectorAll('canvas').forEach(function(cv){ PlayView.render(cv,fake,0,null,false,true); });
+  }
+  document.getElementById('ccount').addEventListener('change',drawCourts);
+  document.getElementById('ctype').addEventListener('change',drawCourts);
+
+  draw(); lists(); drawRem(); showQuote(); drawCourts();
 })();
 </script>
 </body>

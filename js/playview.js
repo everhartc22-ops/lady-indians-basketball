@@ -6,8 +6,8 @@ window.PlayView = (function () {
   function ch(p) { return p.court === "full" ? 1128 : 564; }
   function find(arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; return null; }
 
-  function half(ctx) {
-    ctx.strokeStyle = "#5a0a1c"; ctx.lineWidth = 3; ctx.fillStyle = "rgba(122,12,36,.16)";
+  function half(ctx, plain) {
+    ctx.strokeStyle = plain ? "#333" : "#5a0a1c"; ctx.lineWidth = 3; ctx.fillStyle = plain ? "rgba(0,0,0,0)" : "rgba(122,12,36,.16)";
     ctx.fillRect(204, 0, 192, 228); ctx.strokeRect(204, 1.5, 192, 226.5);
     ctx.beginPath(); ctx.arc(300, 228, 72, 0, Math.PI); ctx.stroke();
     ctx.setLineDash([8, 8]); ctx.beginPath(); ctx.arc(300, 228, 72, Math.PI, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
@@ -17,18 +17,19 @@ window.PlayView = (function () {
     ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(270, 48); ctx.lineTo(330, 48); ctx.stroke();
     ctx.strokeStyle = "#e8590c"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(300, 63, 9, 0, 2 * Math.PI); ctx.stroke();
   }
-  function court(ctx, p) {
+  function court(ctx, p, plain) {
     var H = ch(p); ctx.clearRect(0, 0, W, H);
     var g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#d9b47c"); g.addColorStop(1, "#c4965a");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    ctx.save(); half(ctx); ctx.restore();
+    ctx.fillStyle = plain ? "#fff" : g; ctx.fillRect(0, 0, W, H);
+    var ink = plain ? "#333" : "#5a0a1c";
+    ctx.save(); half(ctx, plain); ctx.restore();
     if (p.court === "full") {
-      ctx.save(); ctx.translate(W, H); ctx.rotate(Math.PI); half(ctx); ctx.restore();
-      ctx.strokeStyle = "#5a0a1c"; ctx.lineWidth = 3;
+      ctx.save(); ctx.translate(W, H); ctx.rotate(Math.PI); half(ctx, plain); ctx.restore();
+      ctx.strokeStyle = ink; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
       ctx.beginPath(); ctx.arc(300, H / 2, 72, 0, 2 * Math.PI); ctx.stroke();
     }
-    ctx.strokeStyle = "#5a0a1c"; ctx.lineWidth = 3; ctx.strokeRect(1.5, 1.5, W - 3, H - 3);
+    ctx.strokeStyle = ink; ctx.lineWidth = 3; ctx.strokeRect(1.5, 1.5, W - 3, H - 3);
   }
   function arrow(ctx, x1, y1, x2, y2, color) {
     var a = Math.atan2(y2 - y1, x2 - x1), s = 13;
@@ -72,10 +73,10 @@ window.PlayView = (function () {
   }
 
   /* Draw step `si` of play `p` (or an in-between animation state `st`) onto canvas. */
-  function render(canvas, p, si, st, showDef) {
+  function render(canvas, p, si, st, showDef, plain) {
     var H = ch(p); if (canvas.width !== W) canvas.width = W; if (canvas.height !== H) canvas.height = H;
     var ctx = canvas.getContext("2d"), s = p.steps[si];
-    court(ctx, p);
+    court(ctx, p, plain);
     var off = st ? st.off : s.off, def = st ? st.def : s.def, bp;
     if (!st) s.lines.forEach(function (l) { drawLine(ctx, l); });
     if (showDef) def.forEach(function (q) { dot(ctx, q, false); });

@@ -231,3 +231,7 @@ footer.site p{color:var(--muted);margin:12px 0 0;font-size:.92rem}
 
 /* Coach password gate */
 html.locked #main{display:none}
+
+/* keep the top menu on one line */
+.menu a{white-space:nowrap}
+@media(max-width:1340px){.menu a{padding:0 8px;font-size:.95rem;letter-spacing:.05em}.menu li.sep{margin:14px 4px}}
