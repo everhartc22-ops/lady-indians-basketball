@@ -85,6 +85,46 @@
   .spark{display:none}
   .progress{display:none}
 }
+
+/* ===== Game photos ===== */
+.hero-photo{position:absolute;top:0;bottom:0;right:0;width:min(52vw,720px);background:url(images/action-1.jpg) 50% 22%/cover no-repeat;opacity:.42;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 55%);mask-image:linear-gradient(90deg,transparent 0%,#000 55%)}
+@media(max-width:899px){.hero-photo{width:100%;opacity:.2;-webkit-mask-image:linear-gradient(180deg,#000 30%,transparent 95%);mask-image:linear-gradient(180deg,#000 30%,transparent 95%)}}
+
+.gallery{background:var(--bg);overflow:hidden}
+.shots{display:grid;gap:14px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:900px){.shots{grid-template-columns:repeat(4,1fr);gap:18px}}
+.shot{position:relative;display:block;padding:0;border:0;background:var(--maroon-d);cursor:pointer;overflow:hidden;aspect-ratio:3/4;box-shadow:0 6px 20px rgba(74,6,21,.22);outline-offset:4px;transition:transform .3s,box-shadow .3s}
+.shot img{width:100%;height:100%;object-fit:cover;object-position:50% 25%;display:block;transition:transform .6s}
+.shot::before{content:"";position:absolute;inset:0;z-index:1;border:4px solid transparent;transition:border-color .25s;pointer-events:none}
+.shot::after{content:"";position:absolute;left:0;right:0;bottom:0;height:45%;background:linear-gradient(180deg,transparent,rgba(42,3,12,.75));opacity:.85;pointer-events:none}
+.shot .tagline{position:absolute;left:14px;bottom:12px;z-index:2;font-family:var(--head);font-weight:800;font-size:1.25rem;letter-spacing:.12em;text-transform:uppercase;color:#fff}
+.shot .tagline i{font-style:normal;color:var(--gold)}
+.shot:hover,.shot:focus-visible{transform:translateY(-6px);box-shadow:0 14px 34px rgba(74,6,21,.35)}
+.shot:hover img,.shot:focus-visible img{transform:scale(1.07)}
+.shot:hover::before,.shot:focus-visible::before{border-color:var(--gold)}
+@media(min-width:900px){.shot:nth-child(even){margin-top:28px}}
+.lightbox{max-width:min(94vw,760px);background:#1a0309;border:2px solid var(--gold);padding:0}
+.lightbox .lbbox{padding:12px;display:grid;gap:10px;justify-items:center}
+.lightbox img{max-width:100%;max-height:76vh;width:auto;height:auto;display:block}
+.lightbox .lbbar{display:flex;gap:8px;width:100%;justify-content:space-between;align-items:center}
+.lightbox .lbbar span{color:#ecd3d9;font-size:.9rem}
+.lightbox .btn{color:#fff}
+
+/* ===== Photo backgrounds behind home sections ===== */
+.bgp{position:relative;isolation:isolate}
+.bgp::before{content:"";position:absolute;inset:0;z-index:-1;background-image:var(--ov),var(--ph);background-size:cover;background-position:center 28%;background-repeat:no-repeat}
+.bgp.light{--ov:linear-gradient(180deg,rgba(251,248,243,.88),rgba(251,248,243,.66) 50%,rgba(251,248,243,.88))}
+.bgp.dark{--ov:linear-gradient(120deg,rgba(74,6,21,.94),rgba(122,12,36,.80));
+  --text:#fff;--muted:#ecd3d9;--accent:var(--gold);--line:rgba(255,255,255,.25);color:var(--text)}
+.bgp.dark .stat div{--muted:#6a585d;--text:#2b1a1f}
+.bgp.dark .sec-head h2{color:#fff}
+.bgp.dark #legstory{color:#fff}
+.bgp.dark .btn.ghost{color:#fff;border-color:#fff}
+.bgp.dark .btn.ghost:hover{background:#fff;color:var(--maroon)}
+.bgp.dark .note{color:#5c4300}
+.bgp.dark .stat strong{background:linear-gradient(180deg,var(--maroon),var(--maroon-d));-webkit-background-clip:text;background-clip:text}
+@media(min-width:900px){.bgp.light::before{background-position:center 22%}}
 </style>
 </head>
 <body data-page="home">
@@ -92,6 +132,7 @@
 <main id="main">
   <section class="hero">
     <div class="fx" aria-hidden="true">
+      <div class="hero-photo"></div>
       <i class="beam" style="--x:-6%;--d:9s;--delay:-2s"></i>
       <i class="beam" style="--x:30%;--d:11s;--delay:-6s"></i>
       <i class="beam" style="--x:62%;--d:8s;--delay:-4s"></i>
@@ -123,7 +164,19 @@
     <span class="dup">Strength<i>&#9670;</i>Pride<i>&#9670;</i>Tradition<i>&#9670;</i>Go Indians<i>&#9670;</i>All In<i>&#9670;</i>Strength<i>&#9670;</i>Pride<i>&#9670;</i>Tradition<i>&#9670;</i>Go Indians<i>&#9670;</i>All In<i>&#9670;</i></span>
   </div></div></div>
 
-  <section class="band">
+  <section class="band gallery" aria-labelledby="gdh">
+    <div class="wrap">
+      <div class="sec-head"><h2 id="gdh">Game <span>Day</span></h2></div>
+      <div class="shots" id="shots">
+        <button class="shot reveal" type="button" data-i="0"><img src="images/action-1.jpg" width="1000" height="1500" loading="lazy" alt="A Millersburg player dribbles up the court past a Halifax defender"><span class="tagline">Attack<i> / </i>Mode</span></button>
+        <button class="shot reveal" type="button" data-i="1"><img src="images/action-2.jpg" width="663" height="937" loading="lazy" alt="Millersburg player number 2 rises for a jump shot"><span class="tagline">Pure<i> / </i>Form</span></button>
+        <button class="shot reveal" type="button" data-i="2"><img src="images/action-3.jpg" width="742" height="927" loading="lazy" alt="Millersburg player number 35 pushes the ball up the floor"><span class="tagline">Push<i> / </i>Pace</span></button>
+        <button class="shot reveal" type="button" data-i="3"><img src="images/action-4.jpg" width="753" height="940" loading="lazy" alt="Millersburg player number 30 dribbles against a defender"><span class="tagline">Lock<i> / </i>In</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="band bgp light" style="--ph:url(images/action-2.jpg)">
     <div class="wrap">
       <div class="sec-head"><h2>Coaches' <span>Corner</span></h2></div>
       <div class="grid g4">
@@ -147,21 +200,21 @@
     </div>
   </section>
 
-  <section class="band alt">
+  <section class="band alt bgp light" style="--ph:url(images/action-3.jpg)">
     <div class="wrap">
       <div class="sec-head"><h2>Meet the <span>Roster</span></h2><a class="more" href="roster.html">Full roster &rarr;</a></div>
       <div class="grid g4" id="homeroster"></div>
     </div>
   </section>
 
-  <section class="band">
+  <section class="band bgp light" style="--ph:url(images/action-4.jpg)">
     <div class="wrap">
       <div class="sec-head"><h2>In the <span>Spotlight</span></h2><span style="display:flex;gap:16px;align-items:center;flex-wrap:wrap"><a class="more" href="news.html#manage">Add or edit stories</a><a class="more" href="news.html">All news &rarr;</a></span></div>
       <div class="grid g3" id="homenews"></div>
     </div>
   </section>
 
-  <section class="band alt">
+  <section class="band alt bgp dark" style="--ph:url(images/action-1.jpg)">
     <div class="wrap">
       <div class="sec-head"><h2>Our <span>Legacy</span></h2><button class="btn sm ghost" id="legedit" type="button">Edit legacy</button></div>
       <div class="stat" id="legstats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"></div>
@@ -287,6 +340,28 @@
     legacy.querySelectorAll('strong:not([data-c])').forEach(function(s){ s.setAttribute('data-c','1'); countUp(s); });
   }
   addEventListener('scroll',checkCount,{passive:true}); checkCount();
+})();
+</script>
+<dialog id="lb" class="lightbox" aria-label="Game photo viewer"><div class="lbbox">
+  <img id="lbimg" alt="">
+  <div class="lbbar"><button class="btn sm ghost" id="lbprev" type="button">&larr; Prev</button><span id="lbcount" aria-live="polite"></span><button class="btn sm ghost" id="lbnext" type="button">Next &rarr;</button></div>
+  <button class="btn sm" id="lbclose" type="button">Close</button>
+</div></dialog>
+<script>
+(function(){
+  var shots=document.querySelectorAll('#shots .shot'), lb=document.getElementById('lb'), img=document.getElementById('lbimg'), cur=0;
+  function show(i){
+    cur=(i+shots.length)%shots.length;
+    var src=shots[cur].querySelector('img');
+    img.src=src.currentSrc||src.src; img.alt=src.alt;
+    document.getElementById('lbcount').textContent=(cur+1)+' of '+shots.length;
+  }
+  shots.forEach(function(b,i){ b.addEventListener('click',function(){ show(i); lb.showModal(); }); });
+  document.getElementById('lbprev').onclick=function(){show(cur-1)};
+  document.getElementById('lbnext').onclick=function(){show(cur+1)};
+  document.getElementById('lbclose').onclick=function(){lb.close()};
+  lb.addEventListener('click',function(e){ if(e.target===lb) lb.close(); });
+  lb.addEventListener('keydown',function(e){ if(e.key==='ArrowLeft') show(cur-1); if(e.key==='ArrowRight') show(cur+1); });
 })();
 </script>
 </body>
