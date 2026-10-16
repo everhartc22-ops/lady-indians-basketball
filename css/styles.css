@@ -259,6 +259,7 @@ body[data-page="playbook"]{--ph:url(../images/action-13.jpg);--pos:26%;--ph2:url
 body[data-page="drills"]{--ph:url(../images/action-6.jpg);--pos:30%;--ph2:url(../images/action-10.jpg)}
 body[data-page="practice"]{--ph:url(../images/action-12.jpg);--pos:33%;--ph2:url(../images/action-3.jpg)}
 body[data-page="scouting"]{--ph:url(../images/action-5.jpg);--ph2:url(../images/action-11.jpg)}
+body[data-page="backup"]{--ph:url(../images/action-7.jpg);--ph2:url(../images/action-10.jpg)}
 body[data-page="coach-password"]{--ph:url(../images/action-9.jpg);--ph2:url(../images/action-5.jpg)}
 
 @media print{

@@ -91,7 +91,7 @@
     '<div><a class="brand" href="index.html"><img class="mark" src="images/logo.png" alt="" width="44" height="48"><span>Lady Indians<small>MILLERSBURG AREA HIGH SCHOOL</small></span></a>' +
     '<p>' + esc(D.team.town) + '. Strength. Pride. Tradition.</p></div>' +
     '<div><h4>Team</h4><ul><li><a href="schedule.html">Schedule</a></li><li><a href="roster.html">Roster</a></li><li><a href="news.html">News</a></li><li><a href="players.html">Team Playbook</a></li></ul></div>' +
-    '<div><h4>Coaches</h4><ul><li><a href="playbook.html">Play Designer</a></li><li><a href="drills.html">Drill Library</a></li><li><a href="practice.html">Practice Planner</a></li><li><a href="scouting.html">Scouting</a></li></ul></div>' +
+    '<div><h4>Coaches</h4><ul><li><a href="playbook.html">Play Designer</a></li><li><a href="drills.html">Drill Library</a></li><li><a href="practice.html">Practice Planner</a></li><li><a href="scouting.html">Scouting</a></li><li><a href="backup.html">Backup &amp; Restore</a></li></ul></div>' +
     '<div><h4>Contact</h4><ul><li><a href="#">Athletic Office</a></li><li><a href="#">Booster Club</a></li></ul></div>' +
     '</div><p class="copy">&copy; 2026 Millersburg Lady Indians Basketball. Unofficial team portal.</p></div></footer>';
 
