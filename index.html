@@ -87,7 +87,7 @@
 }
 
 /* ===== Game photos ===== */
-.hero-photo{position:absolute;top:0;bottom:0;right:0;width:min(52vw,720px);background:url(images/action-1.jpg) 50% 22%/cover no-repeat;opacity:.42;
+.hero-photo{position:absolute;top:0;bottom:0;right:0;width:min(52vw,720px);opacity:.42;
   -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 55%);mask-image:linear-gradient(90deg,transparent 0%,#000 55%)}
 @media(max-width:899px){.hero-photo{width:100%;opacity:.2;-webkit-mask-image:linear-gradient(180deg,#000 30%,transparent 95%);mask-image:linear-gradient(180deg,#000 30%,transparent 95%)}}
 
@@ -128,6 +128,11 @@
 
 /* Next Game card: its own photo (the tip-off), different from the hero photo */
 .nextcard{background-image:linear-gradient(180deg,rgba(60,5,18,.80),rgba(42,3,12,.90)),url(images/action-8.jpg);background-size:cover;background-position:center 18%;background-repeat:no-repeat}
+
+/* Hero photo slideshow: crossfades (opacity only); first photo stays put for reduced-motion users */
+.hero-photo .hp{position:absolute;inset:0;background-size:cover;background-position:50% 22%;background-repeat:no-repeat;opacity:0;animation:hpfade 28s infinite both;animation-delay:calc(var(--i)*7s)}
+.hero-photo .hp:first-child{opacity:1}
+@keyframes hpfade{0%{opacity:0}5%{opacity:1}25%{opacity:1}30%{opacity:0}100%{opacity:0}}
 </style>
 </head>
 <body data-page="home">
@@ -135,7 +140,12 @@
 <main id="main">
   <section class="hero">
     <div class="fx" aria-hidden="true">
-      <div class="hero-photo"></div>
+      <div class="hero-photo">
+        <i class="hp" style="--i:0;background-image:url(images/action-1.jpg)"></i>
+        <i class="hp" style="--i:1;background-image:url(images/action-10.jpg)"></i>
+        <i class="hp" style="--i:2;background-image:url(images/action-11.jpg)"></i>
+        <i class="hp" style="--i:3;background-image:url(images/action-2.jpg)"></i>
+      </div>
       <i class="beam" style="--x:-6%;--d:9s;--delay:-2s"></i>
       <i class="beam" style="--x:30%;--d:11s;--delay:-6s"></i>
       <i class="beam" style="--x:62%;--d:8s;--delay:-4s"></i>
@@ -175,11 +185,15 @@
         <button class="shot reveal" type="button" data-i="1"><img src="images/action-2.jpg" width="663" height="937" loading="lazy" alt="Millersburg player number 2 rises for a jump shot"><span class="tagline">Pure<i> / </i>Form</span></button>
         <button class="shot reveal" type="button" data-i="2"><img src="images/action-3.jpg" width="742" height="927" loading="lazy" alt="Millersburg player number 35 pushes the ball up the floor"><span class="tagline">Push<i> / </i>Pace</span></button>
         <button class="shot reveal" type="button" data-i="3"><img src="images/action-4.jpg" width="753" height="940" loading="lazy" alt="Millersburg player number 30 dribbles against a defender"><span class="tagline">Lock<i> / </i>In</span></button>
+        <button class="shot reveal" type="button" data-i="4"><img src="images/action-10.jpg" width="1333" height="2000" loading="lazy" alt="Millersburg player number 3 reads the defense while dribbling"><span class="tagline">Court<i> / </i>Vision</span></button>
+        <button class="shot reveal" type="button" data-i="5"><img src="images/action-11.jpg" width="1200" height="1500" loading="lazy" alt="Millersburg player number 5 drives past a defender"><span class="tagline">Hold<i> / </i>Ground</span></button>
+        <button class="shot reveal" type="button" data-i="6"><img src="images/action-12.jpg" width="1000" height="1500" loading="lazy" alt="Millersburg player number 30 dribbles past a defender"><span class="tagline">Break<i> / </i>Away</span></button>
+        <button class="shot reveal" type="button" data-i="7"><img src="images/action-13.jpg" width="1000" height="1500" loading="lazy" alt="A Millersburg player brings the ball up the floor"><span class="tagline">Eyes<i> / </i>Up</span></button>
       </div>
     </div>
   </section>
 
-  <section class="band bgp light" style="--ph:url(images/action-2.jpg)">
+  <section class="band bgp light" style="--ph:url(images/action-10.jpg)">
     <div class="wrap">
       <div class="sec-head"><h2>Coaches' <span>Corner</span></h2></div>
       <div class="grid g4">
@@ -203,7 +217,7 @@
     </div>
   </section>
 
-  <section class="band alt bgp light" style="--ph:url(images/action-3.jpg)">
+  <section class="band alt bgp light" style="--ph:url(images/action-11.jpg)">
     <div class="wrap">
       <div class="sec-head"><h2>Meet the <span>Roster</span></h2><a class="more" href="roster.html">Full roster &rarr;</a></div>
       <div class="grid g4" id="homeroster"></div>
