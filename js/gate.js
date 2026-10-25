@@ -107,7 +107,7 @@
     function setMode() {
       if (mode === "create") {
         h.textContent = "Create coach password";
-        p.textContent = "The Play Designer and Practice Planner are for coaches only. Choose a password (6+ characters). It is stored in this browser.";
+        p.textContent = "The Play Designer, Team Playbook and Practice Planner are password protected. Choose a password (6+ characters). It is stored in this browser.";
         c.style.display = ""; btn.textContent = "Save & unlock"; pw.autocomplete = "new-password";
         help.textContent = "At least 6 characters. A short phrase is easier to remember.";
       } else {
