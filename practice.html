@@ -77,6 +77,8 @@
     .cfig .cap{color:#000}
     .wl{border-color:#000}
   }
+  .sharebox{margin-top:14px;padding:12px;background:#fff4cf;border:1px solid var(--gold-d);color:#3d2d00}
+  .sharebox input{margin:8px 0}
   @media print{.qotd{border-color:#444;background:#fff}.qotd .lbl{color:#000}.rem li{background:#fff;border-color:#999}}
 </style>
 <script>window.LI_GATED=true</script>
@@ -174,7 +176,20 @@
         </div>
         <div class="courts" id="courts"></div>
       </section>
-      <div class="toolbar noprint"><button class="btn sm" id="save">Save plan</button><button class="btn sm ghost" id="print">Print</button><button class="btn sm danger" id="clear">Clear</button></div>
+      <div class="toolbar noprint"><button class="btn sm" id="save">Save plan</button><button class="btn sm ghost" id="print">Print</button><button class="btn sm" id="sharebtn" type="button">Share link</button><button class="btn sm danger" id="clear">Clear</button></div>
+      <div class="sharebox noprint" id="sharebox" style="display:none">
+        <b>Practice link</b>
+        <label for="sharelink" class="sr">Practice link</label>
+        <input id="sharelink" readonly>
+        <div class="toolbar">
+          <button class="btn sm" id="sharecopy" type="button">Copy link</button>
+          <button class="btn sm" id="sharenative" type="button" style="display:none">Share&hellip;</button>
+          <a class="btn sm ghost" id="sharesms" href="#">Text message</a>
+          <a class="btn sm ghost" id="shareemail" href="#">Email</a>
+          <a class="btn sm ghost" id="shareopen" href="#" target="_blank" rel="noopener">Preview</a>
+        </div>
+        <p style="margin:10px 0 0;font-size:.88rem" id="sharenote" role="status" aria-live="polite"></p>
+      </div>
     </div>
     <div class="noprint">
       <div class="panel" style="margin-bottom:20px">
@@ -495,6 +510,50 @@
     pool.forEach(function(pl,k){ wstate.groups[(k+start)%n].ids.push(pl.id); });
     wsel=0; drawWarm(true);
     W('wmsg').textContent='Placed '+pool.length+' players into '+n+' groups ('+wstate.groups.map(function(g){return g.ids.length;}).join(', ')+'). Press the button again to shuffle.';
+  };
+
+  /* ---------- Share link (read-only practice page; no roster or password needed) ---------- */
+  function shareBundle(){
+    var R=LI.getRoster(), A=tstate.assign||{};
+    function nm(pl){return '#'+pl.num+' '+pl.name;}
+    return {
+      title:document.getElementById('title').value.trim()||'Practice Plan', date:document.getElementById('date').value, start:document.getElementById('start').value,
+      quote:{text:q.text,by:q.by,blank:!!q.blank},
+      blocks:blocks.map(function(b){return {name:b.name,min:b.min,notes:b.notes||''};}),
+      rems:rems.map(function(r){return r.t;}),
+      teams:tstate.teams.map(function(t){return {name:t.name,players:R.filter(function(pl){return A[pl.id]===t.id;}).map(nm)};}),
+      out:R.filter(function(pl){return A[pl.id]==='out';}).map(nm),
+      warm:wstate.groups.map(function(g,i){return {name:gtitle(g,i),notes:g.notes.trim(),players:R.filter(function(pl){return g.ids.indexOf(pl.id)>-1;}).map(nm)};}),
+      courts:{n:+document.getElementById('ccount').value,type:document.getElementById('ctype').value}
+    };
+  }
+  var sharing=null;
+  document.getElementById('sharebtn').onclick=async function(){
+    var note=document.getElementById('sharenote');
+    if(!blocks.length){alert('Add at least one drill or block first.');return;}
+    try{
+      var b=shareBundle(), code=await PlayView.encode(b), link=new URL('practice-view.html',location.href).href+'#d='+code;
+      document.getElementById('sharelink').value=link; document.getElementById('sharebox').style.display='';
+      var msg='Here is the practice plan for '+b.title+': '+link;
+      document.getElementById('sharesms').href='sms:?&body='+encodeURIComponent(msg);
+      document.getElementById('shareemail').href='mailto:?subject='+encodeURIComponent('Lady Indians practice: '+b.title)+'&body='+encodeURIComponent(msg);
+      document.getElementById('shareopen').href=link;
+      sharing={title:'Lady Indians practice: '+b.title,text:'Practice plan for '+b.title,url:link};
+      document.getElementById('sharenative').style.display=navigator.share?'':'none';
+      var notes=[];
+      if(/^(file:|http:\/\/(localhost|127\.))/.test(location.href)) notes.push('This link only works once the site is online. Right now the site is only on this computer.');
+      if(link.length>6000) notes.push('This link is long ('+link.length+' characters). Some messaging apps may cut it off. Remove some drill notes or court diagrams.');
+      notes.push('Anyone with the link can view this plan, including team lists. It is a snapshot: if you change the plan, send a new link.');
+      note.textContent=notes.join(' ');
+      document.getElementById('sharebox').scrollIntoView({block:'nearest',behavior:'smooth'});
+    }catch(err){alert('Could not create the link in this browser.');}
+  };
+  document.getElementById('sharenative').onclick=function(){ if(sharing&&navigator.share) navigator.share(sharing).catch(function(){}); };
+  document.getElementById('sharecopy').onclick=function(){
+    var i=document.getElementById('sharelink'), n=document.getElementById('sharenote'); i.select();
+    var ok=function(){n.textContent='Link copied.';}, bad=function(){n.textContent='Press Ctrl+C to copy the selected link.';};
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(i.value).then(ok,function(){try{document.execCommand('copy');ok();}catch(e){bad();}});
+    else {try{document.execCommand('copy');ok();}catch(e){bad();}}
   };
 
   draw(); lists(); drawRem(); showQuote(); drawCourts(); drawTeams(); drawWarm(true);
