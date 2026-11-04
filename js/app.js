@@ -22,7 +22,7 @@
   function fmtDate(g, long) {
     return gameDate(g).toLocaleDateString("en-US", long ? { weekday: "long", month: "long", day: "numeric", year: "numeric" } : { weekday: "short", month: "short", day: "numeric" });
   }
-  function fmtTime(g) { return gameDate(g).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); }
+  function fmtTime(g) { if (g.tba) return "TBA"; return gameDate(g).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); }
   function nextGame() {
     var now = new Date();
     return getSchedule().filter(function (g) { return !g.result && gameDate(g) > now; })

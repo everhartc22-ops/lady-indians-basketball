@@ -99,7 +99,7 @@
     $('rows').innerHTML=list.map(function(g){
       var r=g.result?'<span class="res '+(g.result.us>g.result.them?'w':'l')+'">'+(g.result.us>g.result.them?'W':'L')+' '+g.result.us+'-'+g.result.them+'</span>':'<span style="color:var(--muted)">&ndash;</span>';
       var n=next&&next.id===g.id?' <span class="tag gold">Next</span>':'';
-      return '<tr><td>'+LI.fmtDate(g)+n+'</td><td>'+LI.fmtTime(g)+'</td><td><strong>'+(g.home?'vs ':'at ')+E(g.opp)+'</strong></td><td>'+E(g.loc||(g.home?LI_DATA.team.gym:'Away'))+'</td><td><span class="tag">'+E(g.type||'')+'</span></td><td>'+r+'</td>'+
+      return '<tr><td>'+LI.fmtDate(g)+n+'</td><td>'+LI.fmtTime(g)+'</td><td><strong>'+(g.home?'vs ':'at ')+E(g.opp)+'</strong></td><td>'+E(g.loc||(g.home?LI_DATA.team.gym:'Away'))+'</td><td>'+(g.type?'<span class="tag">'+E(g.type)+'</span>':'')+'</td><td>'+r+'</td>'+
         '<td class="colact"><button class="btn sm" data-edit="'+E(g.id)+'" aria-label="Edit game vs '+E(g.opp)+'">Edit</button></td></tr>';
     }).join('');
   }
