@@ -252,7 +252,7 @@ main>section.band:not(.bgp):not(.gallery)::before{content:"";position:absolute;i
 footer.site{background-image:linear-gradient(rgba(42,3,12,.90),rgba(42,3,12,.95)),url(../images/action-9.jpg);background-size:cover;background-position:center 35%}
 
 body[data-page="schedule"]{--ph:url(../images/action-8.jpg);--pos:18%;--ph2:url(../images/action-10.jpg)}
-body[data-page="roster"]{--ph:url(../images/action-11.jpg);--pos:30%;--ph2:url(../images/action-9.jpg)}
+body[data-page="roster"]{--ph:url(../images/action-14.jpg);--pos:16%;--ph2:url(../images/action-9.jpg)}
 body[data-page="news"]{--ph:url(../images/action-10.jpg);--pos:30%;--ph2:url(../images/action-7.jpg)}
 body[data-page="team-playbook"]{--ph:url(../images/action-7.jpg);--ph2:url(../images/action-11.jpg)}
 body[data-page="playbook"]{--ph:url(../images/action-13.jpg);--pos:26%;--ph2:url(../images/action-8.jpg)}
