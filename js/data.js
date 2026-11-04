@@ -6,7 +6,7 @@ window.LI_DATA = {
   // Optional: shared coach password hash for the Play Designer and Practice Planner.
   // Make one at coach-password.html and paste it here so the password works on every device.
   // Leave empty to let each browser create its own password the first time.
-  coachHash: "",
+  coachHash: "6885d468677129950baf52896b96b0e0ff631402e6729e49b6a5da028410a33f",
 
   team: {
     name: "Lady Indians",
