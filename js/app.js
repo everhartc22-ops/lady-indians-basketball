@@ -33,7 +33,9 @@
     try { var v = localStorage.getItem("li_" + key); return v ? JSON.parse(v) : def; } catch (e) { return def; }
   }
   function save(key, val) {
-    try { localStorage.setItem("li_" + key, JSON.stringify(val)); return true; } catch (e) { return false; }
+    try { localStorage.setItem("li_" + key, JSON.stringify(val)); } catch (e) { return false; }
+    try { if (window.LISync) window.LISync.saved(key); } catch (e) {}   // cloud sync (js/sync.js), when set up
+    return true;
   }
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 

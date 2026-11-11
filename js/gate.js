@@ -119,8 +119,9 @@
       pw.focus();
     }
 
-    function unlock() {
+    function unlock(pwText) {
       ss(false, "li_unlocked", "1");
+      if (pwText) window.dispatchEvent(new CustomEvent("li-unlocked", { detail: { pw: pwText } }));
       document.documentElement.classList.remove("locked");
       sec.remove();
       addLockButton();
@@ -135,12 +136,12 @@
         if (val !== pw2.value) { fail("The two passwords don't match. Retype the confirmation.", pw2); return; }
         var salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
         if (!lsSet("li_coachpw", { salt: salt, hash: hashWith(salt, val) })) { fail("This browser blocked saving the password. Allow site data for this page, then try again.", null); return; }
-        unlock(); return;
+        unlock(val); return;
       }
       var now = Date.now();
       if (now < lockedUntil) { fail("Too many tries. Wait " + Math.ceil((lockedUntil - now) / 1000) + " seconds, then try again.", null); return; }
       var ok = configHash ? hashWith(SHARED_SALT, val) === configHash : (local && hashWith(local.salt, val) === local.hash);
-      if (ok) { unlock(); return; }
+      if (ok) { unlock(val); return; }
       failures++; if (failures >= 3) { lockedUntil = now + 5000 * failures; }
       fail("That password isn't right. Check for typos (try Show), or ask your head coach.", pw);
     });

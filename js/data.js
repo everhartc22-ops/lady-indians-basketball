@@ -6,6 +6,17 @@ window.LI_DATA = {
   // Optional: shared coach password hash for the Play Designer and Practice Planner.
   // Make one at coach-password.html and paste it here so the password works on every device.
   // Leave empty to let each browser create its own password the first time.
+  // Cloud sync (optional). Paste your Firebase web app config here to save drills and plays online
+  // so they show on every computer. Leave as null to keep everything in each browser only.
+  firebase: {
+    apiKey: "AIzaSyBfgFU_wwJyD55uoUbS3eMKp2XdE_ooO38",
+    authDomain: "lady-indians.firebaseapp.com",
+    projectId: "lady-indians",
+    storageBucket: "lady-indians.firebasestorage.app",
+    messagingSenderId: "267585201224",
+    appId: "1:267585201224:web:687d318cf91f0927d8247d"
+  },
+
   coachHash: "6885d468677129950baf52896b96b0e0ff631402e6729e49b6a5da028410a33f",
 
   team: {
