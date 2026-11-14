@@ -159,7 +159,7 @@
 
   /* ---------- court ---------- */
   function half(){
-    ctx.strokeStyle='#5a0a1c'; ctx.lineWidth=3; ctx.fillStyle='rgba(122,12,36,.16)';
+    ctx.strokeStyle='#5a0a1c'; ctx.lineWidth=3; ctx.fillStyle='rgba(255,246,228,.5)';
     ctx.fillRect(204,0,192,228); ctx.strokeRect(204,1.5,192,226.5);
     ctx.beginPath(); ctx.arc(300,228,72,0,Math.PI); ctx.stroke();
     ctx.setLineDash([8,8]); ctx.beginPath(); ctx.arc(300,228,72,Math.PI,2*Math.PI); ctx.stroke(); ctx.setLineDash([]);
@@ -171,7 +171,7 @@
   }
   function court(){
     var H=ch(); ctx.clearRect(0,0,W,H);
-    var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#d9b47c'); g.addColorStop(1,'#c4965a');
+    var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#ecd4a8'); g.addColorStop(1,'#e0c08a');
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
     ctx.save(); half(); ctx.restore();
     if(P.court==='full'){
