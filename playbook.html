@@ -54,6 +54,8 @@
         <button class="chip" data-tool="screen" aria-pressed="false">Screen</button>
         <button class="chip" data-tool="shot" aria-pressed="false">Shot</button>
         <button class="chip" data-tool="ball" aria-pressed="false">Ball</button>
+        <button class="chip" data-tool="defender" aria-pressed="false">Defender</button>
+        <button class="chip" data-tool="text" aria-pressed="false">Text</button>
         <button class="chip" data-tool="erase" aria-pressed="false">Erase</button>
       </div>
       <div class="courtwrap" id="cw"><div class="courtbox"><canvas id="court" width="600" height="564" aria-label="Basketball court diagram. Use mouse or touch to move players and draw actions."></canvas></div></div>
@@ -70,13 +72,13 @@
         <button class="btn sm ghost" id="undo">Undo line</button>
         <button class="btn sm ghost" id="clearlines">Clear step lines</button>
         <button class="btn sm ghost" id="reset">Reset players</button>
-        <button class="btn sm ghost" id="def" aria-pressed="false">Show defense</button>
+        <button class="btn sm ghost" id="def" aria-pressed="true">Hide defense</button>
         <button class="btn sm ghost" id="courtbtn">Full court</button>
         <button class="btn sm ghost" id="png">Export PNG</button>
         <button class="btn sm ghost" id="print">Print play</button>
       </div>
       <div class="legend">
-        <span>Gold = offense</span><span>White = defense</span><span>Solid arrow = cut</span><span>Wavy = dribble</span><span>Dashed = pass</span><span>T-bar = screen</span><span>Dotted = shot</span>
+        <span>Gold = offense</span><span>White X = defense</span><span>Solid arrow = cut</span><span>Wavy = dribble</span><span>Dashed = pass</span><span>T-bar = screen</span><span>Dotted = shot</span>
       </div>
       <p class="hint"><b>How it works:</b> draw cuts, passes and screens starting on a player, then <b>+ Add step</b>. The next step starts with everyone where their line ended and the ball with the pass receiver. <b>Animate</b> plays the whole sequence. Double-click a player to rename her label (PG, 4...).</p>
     </div>
@@ -143,13 +145,13 @@
   var cv=document.getElementById('court'), ctx=cv.getContext('2d'), W=600, E=LI.esc;
   var CATS=['Offense','Defense','BLOB','SLOB','Press Break','Transition','Special'];
   var MOVERS={cut:1,dribble:1,screen:1};
-  var P, si=0, tool='move', showDef=false, drag=null, drawing=null, anim=null, catFilter='All', query='';
+  var P, si=0, tool='move', showDef=true, drag=null, drawing=null, anim=null, catFilter='All', query='';
 
   function defaultStep(){
-    var o=[[300,430],[130,330],[470,330],[200,210],[400,210]], d=[[300,380],[160,290],[440,290],[230,150],[370,150]];
+    var o=[[300,430],[130,330],[470,330],[200,210],[400,210]];
     return {
       off:o.map(function(c,i){return {id:'o'+(i+1),l:String(i+1),x:c[0],y:c[1]}}),
-      def:d.map(function(c,i){return {id:'d'+(i+1),l:'X'+(i+1),x:c[0],y:c[1]}}),
+      def:[], texts:[],
       ball:'o1', lines:[]
     };
   }
@@ -220,6 +222,11 @@
     ctx.fillStyle=off?'#2a030c':'#4a0615'; ctx.font='700 18px "Barlow Condensed",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(p.l,p.x,p.y+1);
   }
+  function drawText(t){
+    ctx.save(); ctx.font='700 22px "Barlow Condensed",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.lineJoin='round'; ctx.lineWidth=5; ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.strokeText(t.t,t.x,t.y);
+    ctx.fillStyle='#2a030c'; ctx.fillText(t.t,t.x,t.y); ctx.restore();
+  }
   function ballAt(x,y){
     ctx.beginPath(); ctx.arc(x,y,10,0,2*Math.PI); ctx.fillStyle='#e8590c'; ctx.fill();
     ctx.lineWidth=1.8; ctx.strokeStyle='#2a030c'; ctx.stroke();
@@ -231,6 +238,7 @@
     court();
     var s=P.steps[si], off=st?st.off:s.off, def=st?st.def:s.def, bp;
     if(!st){ s.lines.forEach(drawLine); if(drawing) drawLine(drawing); }
+    (s.texts||[]).forEach(drawText);
     if(showDef) def.forEach(function(p){dot(p,false)});
     off.forEach(function(p){dot(p,true)});
     if(st) bp=st.ball; else { var h=find(s.off,s.ball); bp=h?{x:h.x+17,y:h.y+17}:null; }
@@ -243,6 +251,12 @@
     var s=P.steps[si], all=s.off.concat(showDef?s.def:[]);
     for(var i=all.length-1;i>=0;i--) if(Math.hypot(all[i].x-p.x,all[i].y-p.y)<=24) return all[i];
     return null;
+  }
+  function hitText(p){
+    var ts=P.steps[si].texts||[]; ctx.save(); ctx.font='700 22px "Barlow Condensed",sans-serif';
+    for(var i=ts.length-1;i>=0;i--){ var hw=ctx.measureText(ts[i].t).width/2+8;
+      if(Math.abs(p.x-ts[i].x)<=hw && Math.abs(p.y-ts[i].y)<=16){ ctx.restore(); return ts[i]; } }
+    ctx.restore(); return null;
   }
   function segDist(p,a,b){
     var dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy, t=l2?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/l2)):0;
@@ -259,8 +273,24 @@
   cv.addEventListener('pointerdown',function(e){
     if(anim) return;
     var p=pos(e), s=P.steps[si]; cv.setPointerCapture(e.pointerId);
-    if(tool==='move'){ var h=hit(p); if(h) drag={o:h,dx:h.x-p.x,dy:h.y-p.y}; }
+    if(tool==='move'){ var h=hit(p)||hitText(p); if(h) drag={o:h,dx:h.x-p.x,dy:h.y-p.y}; }
+    else if(tool==='defender'){
+      var used={}; s.def.forEach(function(d){used[d.id]=1;});
+      var n=1; while(used['d'+n]) n++;
+      var np=Math.max(20,Math.min(W-20,p.x)), nq=Math.max(20,Math.min(ch()-20,p.y));
+      P.steps.forEach(function(x){ x.def.push({id:'d'+n,l:'X'+n,x:np,y:nq}); });
+      setDef(true); render();
+    }
+    else if(tool==='text'){
+      var tx=hitText(p);
+      if(tx){ drag={o:tx,dx:tx.x-p.x,dy:tx.y-p.y}; }
+      else { var v=prompt('Text to put on the court:'); if(v&&v.trim()){ (s.texts=s.texts||[]).push({id:LI.uid(),t:v.trim().slice(0,40),x:p.x,y:p.y}); render(); } }
+    }
     else if(tool==='erase'){
+      var et=hitText(p);
+      if(et){ s.texts.splice(s.texts.indexOf(et),1); render(); return; }
+      var ed=showDef?hit(p):null;
+      if(ed&&ed.id[0]==='d'){ P.steps.forEach(function(x){ x.def=x.def.filter(function(d){return d.id!==ed.id}); x.lines=x.lines.filter(function(l){return l.pid!==ed.id}); }); render(); return; }
       for(var i=s.lines.length-1;i>=0;i--){
         var pts=s.lines[i].pts, near=false;
         for(var j=1;j<pts.length;j++) if(segDist(p,pts[j-1],pts[j])<12){near=true;break;}
@@ -295,7 +325,13 @@
   cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
   cv.addEventListener('dblclick',function(e){
     if(anim) return;
-    var h=hit(pos(e)); if(!h) return;
+    var pp=pos(e), tx=hitText(pp);
+    if(tx){
+      var nv=prompt('Edit text (leave blank to delete):',tx.t); if(nv===null) return; nv=nv.trim().slice(0,40);
+      var ts=P.steps[si].texts; if(nv) tx.t=nv; else ts.splice(ts.indexOf(tx),1);
+      render(); return;
+    }
+    var h=hit(pp); if(!h) return;
     var v=prompt('Player label (up to 3 characters):',h.l); if(v===null) return;
     v=v.trim().slice(0,3)||h.l;
     P.steps.forEach(function(s){[s.off,s.def].forEach(function(a){var q=find(a,h.id); if(q) q.l=v;});});
@@ -305,13 +341,14 @@
   /* ---------- toolbar ---------- */
   document.querySelectorAll('[data-tool]').forEach(function(b){b.addEventListener('click',function(){
     tool=b.dataset.tool; document.querySelectorAll('[data-tool]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});
-    cv.style.cursor=tool==='move'?'grab':(tool==='ball'||tool==='erase'?'pointer':'crosshair');});});
+    cv.style.cursor=tool==='move'?'grab':(tool==='ball'||tool==='erase'?'pointer':(tool==='text'?'text':'crosshair'));});});
   cv.style.cursor='grab';
   document.getElementById('undo').onclick=function(){P.steps[si].lines.pop();render();};
   document.getElementById('clearlines').onclick=function(){P.steps[si].lines=[];render();};
   document.getElementById('reset').onclick=function(){var d=defaultStep(),s=P.steps[si];s.off=d.off;s.def=d.def;s.ball=d.ball;render();};
   var defBtn=document.getElementById('def');
-  defBtn.onclick=function(){showDef=!showDef;defBtn.setAttribute('aria-pressed',showDef);defBtn.textContent=showDef?'Hide defense':'Show defense';render();};
+  function setDef(v){showDef=v;defBtn.setAttribute('aria-pressed',showDef);defBtn.textContent=showDef?'Hide defense':'Show defense';}
+  defBtn.onclick=function(){setDef(!showDef);render();};
   var courtBtn=document.getElementById('courtbtn');
   function applyCourt(){
     cv.height=ch(); document.getElementById('cw').style.maxWidth=P.court==='full'?'400px':'none';

@@ -66,6 +66,11 @@ window.PlayView = (function () {
     ctx.fillStyle = off ? "#2a030c" : "#4a0615"; ctx.font = '700 18px "Barlow Condensed",sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText(p.l, p.x, p.y + 1);
   }
+  function drawText(ctx, t) {
+    ctx.save(); ctx.font = '700 22px "Barlow Condensed",sans-serif'; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.lineJoin = "round"; ctx.lineWidth = 5; ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.strokeText(t.t, t.x, t.y);
+    ctx.fillStyle = "#2a030c"; ctx.fillText(t.t, t.x, t.y); ctx.restore();
+  }
   function ballAt(ctx, x, y) {
     ctx.beginPath(); ctx.arc(x, y, 10, 0, 2 * Math.PI); ctx.fillStyle = "#e8590c"; ctx.fill();
     ctx.lineWidth = 1.8; ctx.strokeStyle = "#2a030c"; ctx.stroke();
@@ -79,6 +84,7 @@ window.PlayView = (function () {
     court(ctx, p, plain);
     var off = st ? st.off : s.off, def = st ? st.def : s.def, bp;
     if (!st) s.lines.forEach(function (l) { drawLine(ctx, l); });
+    (s.texts || []).forEach(function (t) { drawText(ctx, t); });
     if (showDef) def.forEach(function (q) { dot(ctx, q, false); });
     off.forEach(function (q) { dot(ctx, q, true); });
     if (st) bp = st.ball; else { var h = find(s.off, s.ball); bp = h ? { x: h.x + 17, y: h.y + 17 } : null; }
@@ -151,6 +157,7 @@ window.PlayView = (function () {
         return {
           off: s.off.map(function (q) { return { id: q.id, l: q.l, x: r(q.x), y: r(q.y) }; }),
           def: s.def.map(function (q) { return { id: q.id, l: q.l, x: r(q.x), y: r(q.y) }; }),
+          texts: (s.texts || []).map(function (t) { return { t: t.t, x: r(t.x), y: r(t.y) }; }),
           ball: s.ball,
           lines: s.lines.map(function (l) { return { t: l.t, pid: l.pid, pts: simplify(l.pts, 4).map(function (q) { return { x: r(q.x), y: r(q.y) }; }) }; })
         };
