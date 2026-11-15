@@ -53,6 +53,8 @@ window.LI_DATA = {
     { date: "2027-02-04", time: "19:30", opp: "Halifax Area HS", home: false, loc: "Halifax Area High School", result: null, type: "" }
   ],
 
+  // Bump this number to make every browser drop its saved roster once and use the roster below.
+  rosterVersion: 1,
   roster: [
     { id: "p_1", num: "", name: "Addi Steinmeir", pos: "G", grade: "Sr", height: "", bio: "" },
     { id: "p_2", num: "", name: "Haylen Mongold", pos: "G", grade: "Jr", height: "", bio: "" },

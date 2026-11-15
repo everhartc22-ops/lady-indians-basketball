@@ -41,6 +41,13 @@
 
   /* Roster: browser-saved copy overrides the sample roster in data.js */
   function getRoster() {
+    try {   // one-time reset: a newer rosterVersion in data.js replaces any roster saved in this browser
+      var rv = String(D.rosterVersion || 0);
+      if (localStorage.getItem("li_rosterver") !== rv) {
+        localStorage.removeItem("li_roster");
+        localStorage.setItem("li_rosterver", rv);
+      }
+    } catch (e) {}
     var r = load("roster", null);
     if (!Array.isArray(r)) r = JSON.parse(JSON.stringify(D.roster));
     r.forEach(function (p) { if (!p.id) p.id = "p_" + p.num; });
