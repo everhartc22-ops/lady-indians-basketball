@@ -54,18 +54,17 @@ window.LI_DATA = {
   ],
 
   roster: [
-    { num: 1,  name: "Player One",    pos: "G", grade: "Sr", height: "5'6\"", bio: "Sample bio. Add hometown, stats, honors and what she's working on this season." },
-    { num: 2,  name: "Player Two",    pos: "G", grade: "Jr", height: "5'7\"", bio: "Sample bio." },
-    { num: 3,  name: "Player Three",  pos: "G", grade: "So", height: "5'5\"", bio: "Sample bio." },
-    { num: 4,  name: "Player Four",   pos: "F", grade: "Sr", height: "5'10\"", bio: "Sample bio." },
-    { num: 5,  name: "Player Five",   pos: "G/F", grade: "Jr", height: "5'8\"", bio: "Sample bio." },
-    { num: 10, name: "Player Ten",    pos: "F", grade: "So", height: "5'9\"", bio: "Sample bio." },
-    { num: 11, name: "Player Eleven", pos: "C", grade: "Sr", height: "6'0\"", bio: "Sample bio." },
-    { num: 12, name: "Player Twelve", pos: "F", grade: "Jr", height: "5'10\"", bio: "Sample bio." },
-    { num: 13, name: "Player Thirteen", pos: "G", grade: "Fr", height: "5'4\"", bio: "Sample bio." },
-    { num: 21, name: "Player Twenty-One", pos: "F", grade: "So", height: "5'9\"", bio: "Sample bio." },
-    { num: 22, name: "Player Twenty-Two", pos: "C", grade: "Jr", height: "5'11\"", bio: "Sample bio." },
-    { num: 24, name: "Player Twenty-Four", pos: "G", grade: "Fr", height: "5'5\"", bio: "Sample bio." }
+    { id: "p_1", num: "", name: "Addi Steinmeir", pos: "G", grade: "Sr", height: "", bio: "" },
+    { id: "p_2", num: "", name: "Haylen Mongold", pos: "G", grade: "Jr", height: "", bio: "" },
+    { id: "p_3", num: "", name: "Langstyn Everhart", pos: "G", grade: "So", height: "", bio: "" },
+    { id: "p_4", num: "", name: "Kennadie Miller", pos: "G", grade: "So", height: "", bio: "" },
+    { id: "p_5", num: "", name: "Brinley Chubb", pos: "G", grade: "So", height: "", bio: "" },
+    { id: "p_6", num: "", name: "Addy Snyder", pos: "F/C", grade: "So", height: "", bio: "" },
+    { id: "p_7", num: "", name: "Aspen Feaster", pos: "F/C", grade: "So", height: "", bio: "" },
+    { id: "p_8", num: "", name: "Lisey Giacobbe", pos: "F/C", grade: "Fr", height: "", bio: "" },
+    { id: "p_9", num: "", name: "Rowan Mongold", pos: "G", grade: "Fr", height: "", bio: "" },
+    { id: "p_10", num: "", name: "Clarissa Nistor", pos: "G", grade: "Jr", height: "", bio: "" },
+    { id: "p_11", num: "", name: "Synee Ylvisaker", pos: "F/C", grade: "Sr", height: "", bio: "" }
   ],
 
   news: [
