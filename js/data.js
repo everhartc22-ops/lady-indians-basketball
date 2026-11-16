@@ -66,7 +66,8 @@ window.LI_DATA = {
     { id: "p_8", num: "", name: "Lisey Giacobbe", pos: "F/C", grade: "Fr", height: "", bio: "" },
     { id: "p_9", num: "", name: "Rowan Mongold", pos: "G", grade: "Fr", height: "", bio: "" },
     { id: "p_10", num: "", name: "Clarissa Nistor", pos: "G", grade: "Jr", height: "", bio: "" },
-    { id: "p_11", num: "", name: "Synee Ylvisaker", pos: "F/C", grade: "Sr", height: "", bio: "" }
+    { id: "p_11", num: "", name: "Synee Ylvisaker", pos: "F/C", grade: "Sr", height: "", bio: "" },
+    { id: "p_12", num: "", name: "Amaya Hoffman", pos: "F/C", grade: "Sr", height: "", bio: "" }
   ],
 
   news: [
