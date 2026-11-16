@@ -57,6 +57,13 @@
 
   /* Schedule: browser-saved copy overrides the sample schedule in data.js */
   function getSchedule() {
+    try {   // one-time reset: a newer scheduleVersion in data.js replaces any schedule saved in this browser
+      var sv = String(D.scheduleVersion || 0);
+      if (localStorage.getItem("li_schedulever") !== sv) {
+        localStorage.removeItem("li_schedule");
+        localStorage.setItem("li_schedulever", sv);
+      }
+    } catch (e) {}
     var r = load("schedule", null);
     if (!Array.isArray(r)) r = JSON.parse(JSON.stringify(D.schedule));
     r.forEach(function (g) { if (!g.id) g.id = "g_" + g.date + "_" + g.opp; });

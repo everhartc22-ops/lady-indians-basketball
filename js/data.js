@@ -27,30 +27,32 @@ window.LI_DATA = {
     gym: "Millersburg Area HS Gym"
   },
 
+  // Bump this number to make every browser drop its saved schedule once and use the schedule below.
+  scheduleVersion: 1,
   // result: null until played, otherwise { us: 52, them: 40 }
   schedule: [
     { date: "2026-11-28", time: "10:00", opp: "Tri-Valley HS", home: false, loc: "Tri-Valley Jr./Sr. High School", result: null, type: "" },
     { date: "2026-12-01", time: "17:00", opp: "Mount Calvary Christian School", home: false, loc: "Mount Calvary Christian School", result: null, type: "" },
     { date: "2026-12-04", time: "18:00", opp: "York County School Of Technology", home: false, loc: "Gettysburg Area High School", result: null, type: "" },
-    { date: "2026-12-08", time: "19:30", opp: "Greenwood HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
+    { date: "2026-12-08", time: "18:30", opp: "Greenwood HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
     { date: "2026-12-10", time: "19:30", opp: "East Juniata HS", home: false, loc: "East Juniata Junior/Senior High School", result: null, type: "" },
     { date: "2026-12-15", time: "19:30", opp: "Saint Joseph's Catholic Academy", home: false, loc: "St Joseph's Catholic Academy High School", result: null, type: "" },
     { date: "2026-12-17", time: "19:30", opp: "Juniata HS", home: false, loc: "Juniata High School", result: null, type: "" },
-    { date: "2026-12-22", time: "19:30", opp: "Newport HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
+    { date: "2026-12-22", time: "18:30", opp: "Newport HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
     { date: "2026-12-28", time: "12:00", opp: "TBA", home: false, loc: "TBA", result: null, type: "", tba: true },
     { date: "2026-12-29", time: "12:00", opp: "TBA", home: false, loc: "TBA", result: null, type: "", tba: true },
     { date: "2027-01-04", time: "19:30", opp: "Schuylkill Valley HS", home: false, loc: "Schuylkill Valley High School", result: null, type: "" },
     { date: "2027-01-07", time: "19:30", opp: "Upper Dauphin Area HS", home: false, loc: "Upper Dauphin Area High School", result: null, type: "" },
-    { date: "2027-01-12", time: "19:30", opp: "Line Mountain Sr HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
+    { date: "2027-01-12", time: "18:30", opp: "Line Mountain Sr HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
     { date: "2027-01-14", time: "19:00", opp: "Susquenita HS", home: false, loc: "Susquenita High School", result: null, type: "" },
     { date: "2027-01-16", time: "15:30", opp: "Harrisburg Christian School", home: false, loc: "Harrisburg Christian", result: null, type: "" },
-    { date: "2027-01-18", time: "19:30", opp: "Fairfield HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
-    { date: "2027-01-19", time: "19:30", opp: "Halifax Area HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
-    { date: "2027-01-25", time: "19:30", opp: "Shamokin Area HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
-    { date: "2027-01-26", time: "19:30", opp: "Upper Dauphin Area HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
+    { date: "2027-01-18", time: "18:30", opp: "Fairfield HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
+    { date: "2027-01-19", time: "18:30", opp: "Halifax Area HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
+    { date: "2027-01-25", time: "18:30", opp: "Shamokin Area HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
+    { date: "2027-01-26", time: "18:30", opp: "Upper Dauphin Area HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
     { date: "2027-01-28", time: "17:30", opp: "Line Mountain Sr HS", home: false, loc: "Line Mountain High School", result: null, type: "" },
-    { date: "2027-02-02", time: "19:30", opp: "Susquenita HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
-    { date: "2027-02-04", time: "19:30", opp: "Halifax Area HS", home: false, loc: "Halifax Area High School", result: null, type: "" }
+    { date: "2027-02-02", time: "18:30", opp: "Susquenita HS", home: true, loc: "Millersburg Area HS Gym", result: null, type: "" },
+    { date: "2027-02-04", time: "18:30", opp: "Halifax Area HS", home: false, loc: "Halifax Area High School", result: null, type: "" }
   ],
 
   // Bump this number to make every browser drop its saved roster once and use the roster below.
