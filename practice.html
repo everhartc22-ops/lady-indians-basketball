@@ -9,6 +9,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <style>
+  .block .bnote{grid-column:1/-1;display:block}
+  .block .bnote span{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+  .block .bnote textarea{width:100%;min-height:60px;resize:vertical;font:inherit;padding:8px}
+  .bnote-print{display:none;grid-column:1/-1;margin:0;white-space:pre-wrap}
+  @media print{.bnote-print{display:block}}
+
   .qotd{border-left:6px solid var(--gold);background:var(--bg);padding:16px 18px;margin-bottom:22px}
   .qotd .lbl{font-family:var(--head);text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-weight:700;font-size:.95rem;margin-bottom:6px}
   .qotd blockquote{margin:0;font-size:1.2rem;font-style:italic;line-height:1.45}
@@ -230,7 +236,9 @@
     el.innerHTML=blocks.length?blocks.map(function(b,i){
       var s=t; t+=b.min; tot+=b.min;
       return '<li class="block"><span class="t">'+fmt(s)+'</span><span class="n">'+E(b.name)+' <small>'+(b.notes?E(b.notes):'')+'</small></span><span class="mins"><input class="mn" type="number" min="1" value="'+b.min+'" data-m="'+i+'" aria-label="Minutes for '+E(b.name)+'" style="width:72px"> <span class="noprint">min</span></span><span class="acts noprint">'+
-        '<button class="iconbtn" data-up="'+i+'" aria-label="Move up">&uarr;</button><button class="iconbtn" data-dn="'+i+'" aria-label="Move down">&darr;</button><button class="iconbtn" data-rm="'+i+'" aria-label="Remove">&times;</button></span></li>';
+        '<button class="iconbtn" data-up="'+i+'" aria-label="Move up">&uarr;</button><button class="iconbtn" data-dn="'+i+'" aria-label="Move down">&darr;</button><button class="iconbtn" data-rm="'+i+'" aria-label="Remove">&times;</button></span>'+
+        '<label class="bnote noprint"><span>My notes</span><textarea rows="2" data-my="'+i+'" placeholder="Add your notes for this block..." aria-label="Notes for '+E(b.name)+'">'+E(b.my||'')+'</textarea></label>'+
+        (b.my&&b.my.trim()?'<p class="bnote-print">'+E(b.my.trim())+'</p>':'')+'</li>';
     }).join(''):'<li class="empty">No blocks yet. Add drills or custom blocks.</li>';
     document.getElementById('tot').textContent=tot; document.getElementById('end').textContent=fmt(startMin()+tot);
     LI.save('cart',blocks);
@@ -243,6 +251,8 @@
     draw();
   });
   document.getElementById('blocks').addEventListener('change',function(e){var i=e.target.dataset.m; if(i===undefined) return; blocks[+i].min=Math.max(1,parseInt(e.target.value,10)||1); draw();});
+  document.getElementById('blocks').addEventListener('input',function(e){var i=e.target.dataset.my; if(i===undefined) return; blocks[+i].my=e.target.value; LI.save('cart',blocks);});
+  document.getElementById('blocks').addEventListener('focusout',function(e){ if(e.target.dataset.my!==undefined) draw(); });
   document.getElementById('start').addEventListener('input',draw);
   document.getElementById('addpick').onclick=function(){var d=drills[+document.getElementById('pick').value]; if(!d) return;blocks.push({name:d.name,min:+document.getElementById('pm').value||10,notes:d.desc});draw();};
   document.getElementById('addcustom').onclick=function(){var n=document.getElementById('cn').value.trim();if(!n)return;blocks.push({name:n,min:+document.getElementById('cm').value||10,notes:''});document.getElementById('cn').value='';draw();};
@@ -520,7 +530,7 @@
     return {
       title:document.getElementById('title').value.trim()||'Practice Plan', date:document.getElementById('date').value, start:document.getElementById('start').value,
       quote:{text:q.text,by:q.by,blank:!!q.blank},
-      blocks:blocks.map(function(b){return {name:b.name,min:b.min,notes:b.notes||''};}),
+      blocks:blocks.map(function(b){return {name:b.name,min:b.min,notes:b.notes||'',my:(b.my||'').trim()};}),
       rems:rems.map(function(r){return r.t;}),
       teams:tstate.teams.map(function(t){return {name:t.name,players:R.filter(function(pl){return A[pl.id]===t.id;}).map(nm)};}),
       out:R.filter(function(pl){return A[pl.id]==='out';}).map(nm),

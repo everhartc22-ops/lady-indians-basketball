@@ -68,7 +68,7 @@
   if(d.quote&&d.quote.text&&!d.quote.blank){ $('qbox').style.display=''; $('qtext').textContent='“'+d.quote.text+'”'; $('qby').textContent=d.quote.by?'— '+d.quote.by:''; }
   $('blocks').innerHTML=d.blocks.map(function(b){
     var s=t, m=Math.max(1,+b.min||1); t+=m; tot+=m;
-    return '<li class="block"><span class="t">'+fmt(s)+'</span><span class="n">'+E(b.name)+' <small>'+(b.notes?E(b.notes):'')+'</small></span><span class="mins">'+m+' min</span></li>';
+    return '<li class="block"><span class="t">'+fmt(s)+'</span><span class="n">'+E(b.name)+' <small>'+(b.notes?E(b.notes):'')+'</small>'+(b.my?'<small style="color:inherit;white-space:pre-wrap"><b>Notes:</b> '+E(b.my)+'</small>':'')+'</span><span class="mins">'+m+' min</span></li>';
   }).join('')||'<li class="empty">No blocks in this plan.</li>';
   $('tot').textContent=tot; $('end').textContent=fmt(t);
   if(d.rems&&d.rems.length){ $('remsec').style.display=''; $('rem').innerHTML=d.rems.map(function(r){return '<li>'+E(r)+'</li>';}).join(''); }
