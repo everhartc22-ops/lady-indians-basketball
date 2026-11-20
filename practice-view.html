@@ -81,11 +81,15 @@
   if(d.teams&&d.teams.some(function(g){return g.players.length;})){ $('teamsec').style.display=''; $('teams').innerHTML=groups(d.teams,true); }
   if(d.out&&d.out.length){ $('teamsec').style.display=''; $('out').innerHTML='<b>Not at practice:</b> '+d.out.map(E).join(', '); }
   if(d.warm&&d.warm.some(function(g){return g.players.length;})){ $('warmsec').style.display=''; $('warm').innerHTML=groups(d.warm,false); }
-  if(d.courts&&d.courts.n>0){
-    var type=d.courts.type==='full'?'full':'half', box=$('courts'), fake={court:type,steps:[{off:[],def:[],ball:null,lines:[]}]}, html='';
-    $('courtsec').style.display=''; box.className='courts'+(type==='full'?' full':'');
-    for(var i=0;i<Math.min(d.courts.n,8);i++) html+='<figure class="cfig"><canvas width="600" height="'+(type==='full'?1128:564)+'" role="img" aria-label="Blank '+type+' court diagram '+(i+1)+'"></canvas></figure>';
-    box.innerHTML=html; box.querySelectorAll('canvas').forEach(function(cv){PlayView.render(cv,fake,0,null,false,true);});
+  var cc=d.courts||{}, ch,cf;
+  if(cc.half!==undefined||cc.full!==undefined){ch=+cc.half||0;cf=+cc.full||0;} else if(cc.type==='full'){ch=0;cf=+cc.n||0;} else {ch=+cc.n||0;cf=0;}
+  ch=Math.min(ch,8); cf=Math.min(cf,8);
+  if(ch+cf>0){
+    var box=$('courts'), html='';
+    function figs(type,n,start){ var s=''; for(var i=0;i<n;i++) s+='<figure class="cfig"><canvas width="600" height="'+(type==='full'?1128:564)+'" role="img" aria-label="Blank '+type+' court diagram '+(start+i+1)+'"></canvas></figure>'; return s; }
+    $('courtsec').style.display='';
+    box.className=''; box.innerHTML=(ch?'<div class="courts">'+figs('half',ch,0)+'</div>':'')+(cf?'<div class="courts full" style="margin-top:'+(ch?16:0)+'px">'+figs('full',cf,ch)+'</div>':'');
+    box.querySelectorAll('.courts').forEach(function(g){ var type=g.classList.contains('full')?'full':'half', fake={court:type,steps:[{off:[],def:[],ball:null,lines:[]}]}; g.querySelectorAll('canvas').forEach(function(cv){PlayView.render(cv,fake,0,null,false,true);}); });
   }
   $('plan').style.display='';
   $('print').onclick=function(){window.print();};
