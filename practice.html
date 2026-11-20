@@ -37,6 +37,11 @@
     .printhead .sub{font-size:.95rem;color:#333;margin-top:4px}
     .printhead .ptitle{font-family:var(--head);font-size:1.4rem;font-weight:700;text-transform:uppercase;margin-top:6px;color:#000}
     .designer{display:block!important}
+    @page{margin:.5in}
+    main>section.band,section.band{padding:0!important}
+    main>section.band::before{display:none!important}
+    .wrap{padding:0!important;max-width:none!important}
+    .designer .panel{padding:0!important;border:0!important;box-shadow:none!important;background:none!important}
   }
   .tnames{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
   .tn{display:flex;gap:4px;align-items:center}
