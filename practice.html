@@ -9,6 +9,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <style>
+  .bplay{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:8px;break-inside:avoid}
+  .bplay figure{margin:0}
+  .bplay canvas{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line)}
+  .bplay figcaption{font-size:.78rem;color:var(--muted);text-align:center}
   .block .bnote{grid-column:1/-1;display:block}
   .block .bnote span{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px}
   .block .bnote textarea{width:100%;min-height:60px;resize:vertical;font:inherit;padding:8px}
@@ -212,6 +216,13 @@
         <p class="meta">Queue more from the <a href="drills.html" style="color:var(--gold)">Drill Library</a>.</p>
       </div>
       <div class="panel" style="margin-bottom:20px">
+        <h3>Add from plays</h3>
+        <div class="row c2"><div class="field"><label for="playpick">Play</label><select id="playpick"></select></div>
+        <div class="field"><label for="plm">Minutes</label><input id="plm" type="number" min="1" value="10"></div></div>
+        <button class="btn sm" id="addplay">Add play</button>
+        <p class="meta">Draw more in the <a href="playbook.html" style="color:var(--gold)">Play Designer</a>.</p>
+      </div>
+      <div class="panel" style="margin-bottom:20px">
         <h3>Add custom block</h3>
         <div class="field"><label for="cn">Name</label><input id="cn" placeholder="Warm-up, team talk, scrimmage..."></div>
         <div class="field"><label for="cm">Minutes</label><input id="cm" type="number" min="1" value="10"></div>
@@ -237,15 +248,30 @@
 
   function fmt(mins){var h=Math.floor(mins/60)%24,m=mins%60,ap=h>=12?'PM':'AM';return ((h%12)||12)+':'+String(m).padStart(2,'0')+' '+ap;}
   function startMin(){var v=document.getElementById('start').value||'15:30';return +v.slice(0,2)*60+ +v.slice(3,5);}
+  /* a play block shows the live play from the Play Designer, or the copy saved with the block if the play was deleted */
+  function playDiagram(b){
+    var x=LI.load('plays2',[]).filter(function(y){return y&&y.id===b.play;})[0];
+    return x?PlayView.slim(x,false):(b.pd||null);
+  }
   function draw(){
     var t=startMin(), tot=0, el=document.getElementById('blocks');
     el.innerHTML=blocks.length?blocks.map(function(b,i){
       var s=t; t+=b.min; tot+=b.min;
       return '<li class="block"><span class="t">'+fmt(s)+'</span><span class="n">'+E(b.name)+' <small>'+(b.notes?E(b.notes):'')+'</small></span><span class="mins"><input class="mn" type="number" min="1" value="'+b.min+'" data-m="'+i+'" aria-label="Minutes for '+E(b.name)+'" style="width:72px"> <span class="noprint">min</span></span><span class="acts noprint">'+
         '<button class="iconbtn" data-up="'+i+'" aria-label="Move up">&uarr;</button><button class="iconbtn" data-dn="'+i+'" aria-label="Move down">&darr;</button><button class="iconbtn" data-rm="'+i+'" aria-label="Remove">&times;</button></span>'+
+        (b.play?'<div class="bplay" data-bp="'+i+'"></div>':'')+
         '<label class="bnote noprint"><span>My notes</span><textarea rows="2" data-my="'+i+'" placeholder="Add your notes for this block..." aria-label="Notes for '+E(b.name)+'">'+E(b.my||'')+'</textarea></label>'+
         (b.my&&b.my.trim()?'<p class="bnote-print">'+E(b.my.trim())+'</p>':'')+'</li>';
     }).join(''):'<li class="empty">No blocks yet. Add drills or custom blocks.</li>';
+    el.querySelectorAll('.bplay').forEach(function(box){
+      var pd=playDiagram(blocks[+box.dataset.bp]); if(!pd||!pd.steps||!pd.steps.length) return;
+      pd.steps.forEach(function(s,si){
+        var f=document.createElement('figure'), cv=document.createElement('canvas');
+        cv.setAttribute('role','img'); cv.setAttribute('aria-label',pd.name+' diagram, step '+(si+1));
+        f.appendChild(cv); if(pd.steps.length>1){var c=document.createElement('figcaption'); c.textContent='Step '+(si+1); f.appendChild(c);} box.appendChild(f);
+        PlayView.render(cv,pd,si,null,true,true);
+      });
+    });
     document.getElementById('tot').textContent=tot; document.getElementById('end').textContent=fmt(startMin()+tot);
     LI.save('cart',blocks);
   }
@@ -261,6 +287,19 @@
   document.getElementById('blocks').addEventListener('focusout',function(e){ if(e.target.dataset.my!==undefined) draw(); });
   document.getElementById('start').addEventListener('input',draw);
   document.getElementById('addpick').onclick=function(){var d=drills[+document.getElementById('pick').value]; if(!d) return;blocks.push({name:d.name,min:+document.getElementById('pm').value||10,notes:d.desc});draw();};
+  function playList(){ return LI.load('plays2',[]).filter(function(x){return x&&x.name;}); }
+  function fillPlays(){
+    var pl=playList(), sel=document.getElementById('playpick'), keep=sel.value;
+    sel.innerHTML=pl.length?pl.map(function(x){return '<option value="'+E(x.id)+'">'+E(x.name)+(x.cat?' ('+E(x.cat)+')':'')+'</option>';}).join(''):'<option value="">No plays yet. Draw some in the Play Designer.</option>';
+    if(keep) sel.value=keep;
+  }
+  fillPlays();
+  document.getElementById('playpick').addEventListener('focus',fillPlays);
+  document.getElementById('addplay').onclick=function(){
+    fillPlays();
+    var id=document.getElementById('playpick').value, x=playList().filter(function(y){return y.id===id;})[0]; if(!x) return;
+    blocks.push({name:'Play: '+x.name,min:+document.getElementById('plm').value||10,notes:(x.cat?x.cat+'. ':'')+(x.notes||''),play:x.id,pd:PlayView.slim(x,false)}); draw();
+  };
   document.getElementById('addcustom').onclick=function(){var n=document.getElementById('cn').value.trim();if(!n)return;blocks.push({name:n,min:+document.getElementById('cm').value||10,notes:''});document.getElementById('cn').value='';draw();};
   document.getElementById('clear').onclick=function(){if(confirm('Clear all blocks?')){blocks=[];curId=null;draw();}};
   document.getElementById('print').onclick=function(){window.print();};
@@ -546,7 +585,7 @@
     return {
       title:document.getElementById('title').value.trim()||'Practice Plan', date:document.getElementById('date').value, start:document.getElementById('start').value,
       quote:{text:q.text,by:q.by,blank:!!q.blank},
-      blocks:blocks.map(function(b){return {name:b.name,min:b.min,notes:b.notes||'',my:(b.my||'').trim()};}),
+      blocks:blocks.map(function(b){var o={name:b.name,min:b.min,notes:b.notes||'',my:(b.my||'').trim()}; if(b.play){var pd=playDiagram(b); if(pd) o.pd=pd;} return o;}),
       rems:rems.map(function(r){return r.t;}),
       teams:tstate.teams.map(function(t){return {name:t.name,players:R.filter(function(pl){return A[pl.id]===t.id;}).map(nm)};}),
       out:R.filter(function(pl){return A[pl.id]==='out';}).map(nm),

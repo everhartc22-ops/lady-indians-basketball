@@ -22,6 +22,10 @@
   .grp h4 span{font-family:var(--body);font-size:.85rem;color:var(--muted);font-weight:500}
   .grp .wn{margin:0 0 8px;color:var(--muted);font-style:italic}
   .grp ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+  .block{grid-template-columns:auto 1fr auto!important}
+  .bplay{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,200px));gap:8px;break-inside:avoid}
+  .bplay figure{margin:0}.bplay canvas{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line)}
+  .bplay figcaption{font-size:.78rem;color:var(--muted);text-align:center}
   .courts{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
   .courts.full{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
   .cfig{margin:0;background:#fff;border:1px solid var(--line);padding:8px;break-inside:avoid}
@@ -68,8 +72,17 @@
   if(d.quote&&d.quote.text&&!d.quote.blank){ $('qbox').style.display=''; $('qtext').textContent='“'+d.quote.text+'”'; $('qby').textContent=d.quote.by?'— '+d.quote.by:''; }
   $('blocks').innerHTML=d.blocks.map(function(b){
     var s=t, m=Math.max(1,+b.min||1); t+=m; tot+=m;
-    return '<li class="block"><span class="t">'+fmt(s)+'</span><span class="n">'+E(b.name)+' <small>'+(b.notes?E(b.notes):'')+'</small>'+(b.my?'<small style="color:inherit;white-space:pre-wrap"><b>Notes:</b> '+E(b.my)+'</small>':'')+'</span><span class="mins">'+m+' min</span></li>';
+    return '<li class="block"><span class="t">'+fmt(s)+'</span><span class="n">'+E(b.name)+' <small>'+(b.notes?E(b.notes):'')+'</small>'+(b.my?'<small style="color:inherit;white-space:pre-wrap"><b>Notes:</b> '+E(b.my)+'</small>':'')+'</span><span class="mins">'+m+' min</span>'+(b.pd&&b.pd.steps&&b.pd.steps.length?'<div class="bplay"></div>':'')+'</li>';
   }).join('')||'<li class="empty">No blocks in this plan.</li>';
+  document.querySelectorAll('#blocks .block').forEach(function(li,i){
+    var box=li.querySelector('.bplay'), pd=d.blocks[i]&&d.blocks[i].pd; if(!box||!pd) return;
+    pd.steps.forEach(function(s,si){
+      var f=document.createElement('figure'), cv=document.createElement('canvas');
+      cv.setAttribute('role','img'); cv.setAttribute('aria-label',(pd.name||'Play')+' diagram, step '+(si+1));
+      f.appendChild(cv); if(pd.steps.length>1){var c=document.createElement('figcaption'); c.textContent='Step '+(si+1); f.appendChild(c);} box.appendChild(f);
+      PlayView.render(cv,pd,si,null,true,true);
+    });
+  });
   $('tot').textContent=tot; $('end').textContent=fmt(t);
   if(d.rems&&d.rems.length){ $('remsec').style.display=''; $('rem').innerHTML=d.rems.map(function(r){return '<li>'+E(r)+'</li>';}).join(''); }
   function groups(list,colored){
