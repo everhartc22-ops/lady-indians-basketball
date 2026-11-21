@@ -58,17 +58,17 @@ window.LI_DATA = {
   // Bump this number to make every browser drop its saved roster once and use the roster below.
   rosterVersion: 1,
   roster: [
-    { id: "p_1", num: "", name: "Addi Steinmeir", pos: "G", grade: "Sr", height: "", bio: "" },
-    { id: "p_2", num: "", name: "Haylen Mongold", pos: "G", grade: "Jr", height: "", bio: "" },
-    { id: "p_3", num: "", name: "Langstyn Everhart", pos: "G", grade: "So", height: "", bio: "" },
-    { id: "p_4", num: "", name: "Kennadie Miller", pos: "G", grade: "So", height: "", bio: "" },
-    { id: "p_5", num: "", name: "Brinley Chubb", pos: "G", grade: "So", height: "", bio: "" },
-    { id: "p_6", num: "", name: "Addy Snyder", pos: "F/C", grade: "So", height: "", bio: "" },
-    { id: "p_8", num: "", name: "Lisey Giacobbe", pos: "F/C", grade: "Fr", height: "", bio: "" },
-    { id: "p_9", num: "", name: "Rowan Mongold", pos: "G", grade: "Fr", height: "", bio: "" },
-    { id: "p_10", num: "", name: "Clarissa Nistor", pos: "G", grade: "Jr", height: "", bio: "" },
-    { id: "p_11", num: "", name: "Synee Ylvisaker", pos: "F/C", grade: "Sr", height: "", bio: "" },
-    { id: "p_12", num: "", name: "Amaya Hoffman", pos: "F/C", grade: "Sr", height: "", bio: "" }
+    { id: "p_1", num: "3", name: "Addi Steinmeir", pos: "G", grade: "Sr", height: "", bio: "" },
+    { id: "p_2", num: "25", name: "Haylen Mongold", pos: "G", grade: "Jr", height: "", bio: "" },
+    { id: "p_3", num: "35", name: "Langstyn Everhart", pos: "G", grade: "So", height: "", bio: "" },
+    { id: "p_4", num: "30", name: "Kennadie Miller", pos: "G", grade: "So", height: "", bio: "" },
+    { id: "p_5", num: "2", name: "Brinley Chubb", pos: "G", grade: "So", height: "", bio: "" },
+    { id: "p_6", num: "15", name: "Addy Snyder", pos: "F/C", grade: "So", height: "", bio: "" },
+    { id: "p_8", num: "21", name: "Lisey Giacobbe", pos: "F/C", grade: "Fr", height: "", bio: "" },
+    { id: "p_9", num: "1", name: "Rowan Mongold", pos: "G", grade: "Fr", height: "", bio: "" },
+    { id: "p_10", num: "10", name: "Clarissa Nistor", pos: "G", grade: "Jr", height: "", bio: "" },
+    { id: "p_11", num: "11", name: "Synee Ylvisaker", pos: "F/C", grade: "Sr", height: "", bio: "" },
+    { id: "p_12", num: "4", name: "Amaya Hoffman", pos: "F/C", grade: "Sr", height: "", bio: "" }
   ],
 
   news: [
