@@ -71,6 +71,13 @@ window.LI_DATA = {
     { id: "p_12", num: "4", name: "Amaya Hoffman", pos: "F/C", grade: "Sr", height: "", bio: "" }
   ],
 
+  staff: [
+    { name: "Chad Everhart", role: "Head Coach" },
+    { name: "Kaylee Gessner", role: "Assistant Coach" },
+    { name: "Dustin Mongold", role: "Assistant Coach" },
+    { name: "Damon Blair-Jones", role: "Athletic Director" }
+  ],
+
   news: [
     { id: 1, date: "2026-10-05", title: "Preseason Practice Begins", tag: "Team",
       excerpt: "The Lady Indians open the new season with conditioning and fundamentals.",

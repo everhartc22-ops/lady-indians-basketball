@@ -32,6 +32,13 @@
     .printroster td.n{width:60px;font-weight:700;text-align:center}
     .printroster tr{break-inside:avoid}
   }
+  .staff{margin-top:48px}
+  .staff h2{font-size:1.8rem;margin-bottom:16px}
+  .staff ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .staff li{background:var(--surface-2);border:1px solid var(--line);border-top:4px solid var(--gold-d);padding:14px 16px}
+  .staff li b{display:block;font-size:1.1rem}
+  .staff li span{color:var(--muted);font-size:.95rem}
+  @media print{.staff{margin-top:20px;break-inside:avoid}.staff li{background:#fff;border-color:#999;border-top-color:#000}.staff li span{color:#333}}
   .empty-roster{padding:40px;text-align:center;border:2px dashed var(--line);color:var(--muted)}
 </style>
 </head>
@@ -40,6 +47,7 @@
   <section class="printroster" aria-hidden="true">
     <div class="ph"><img src="images/logo.png" alt=""><div><div class="team">Millersburg Lady Indians Basketball</div><div class="sub" id="prsub"></div></div></div>
     <table><thead><tr><th>#</th><th>Name</th><th>Grade</th><th>Pos</th><th>Height</th></tr></thead><tbody id="prbody"></tbody></table>
+    <div id="prstaff" style="margin-top:18px;font-size:1.05rem"></div>
   </section>
   <div class="pagehead"><div class="wrap"><h1>Team <span>Roster</span></h1><p>Millersburg Lady Indians. Select a player for her profile.</p></div></div>
   <section class="band" id="rostersec"><div class="wrap">
@@ -62,6 +70,8 @@
     </div>
 
     <div class="grid g4" id="grid"></div>
+
+    <div class="staff" id="staffsec"><h2>Coaching Staff</h2><ul id="staff"></ul></div>
   </div></section>
 </main>
 
@@ -105,6 +115,9 @@
   var E=LI.esc, roster=LI.getRoster(), filt='all', editing=false, editId=null, photo='';
   var dlg=document.getElementById('dlg'), fd=document.getElementById('formdlg');
   var person='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"/><path d="M3 22c0-5 4-8 9-8s9 3 9 8z"/></svg>';
+  (function(){ var st=window.LI_DATA.staff||[]; document.getElementById('staffsec').style.display=st.length?'':'none';
+    document.getElementById('prstaff').innerHTML=st.length?'<b>Coaching Staff:</b> '+st.map(function(s){return E(s.name)+' ('+E(s.role)+')';}).join(', '):'';
+    document.getElementById('staff').innerHTML=st.map(function(s){return '<li><b>'+E(s.name)+'</b><span>'+E(s.role)+'</span></li>';}).join(''); })();
   function persist(){ if(!LI.saveRoster(roster)) alert('Could not save. Your browser storage may be full or blocked. Try removing a photo.'); roster=LI.getRoster(); draw(); }
 
   function draw(){
