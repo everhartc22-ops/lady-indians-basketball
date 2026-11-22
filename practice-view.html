@@ -26,6 +26,8 @@
   .bplay{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,200px));gap:8px;break-inside:avoid}
   .bplay figure{margin:0}.bplay canvas{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line)}
   .bplay figcaption{font-size:.78rem;color:var(--muted);text-align:center}
+  .pdi{border:1px solid var(--line);padding:12px;margin-bottom:12px;break-inside:avoid}.pdi h4{margin:0 0 2px;font-size:1.15rem}.pdi p{margin:2px 0 8px;color:var(--muted);font-size:.92rem}
+  .pdi .bplay{grid-template-columns:repeat(auto-fill,minmax(200px,260px))}
   .courts{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
   .courts.full{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
   .cfig{margin:0;background:#fff;border:1px solid var(--line);padding:8px;break-inside:avoid}
@@ -48,6 +50,7 @@
       <section id="remsec" style="display:none"><h3 class="sec">Reminders</h3><ul class="rem" id="rem"></ul></section>
       <section id="teamsec" style="display:none"><h3 class="sec">Teams</h3><div class="groups" id="teams"></div><p id="out" style="margin:12px 0 0"></p></section>
       <section id="warmsec" style="display:none"><h3 class="sec">Warm-up Groups</h3><div class="groups" id="warm"></div></section>
+      <section id="pdsec" style="display:none"><h3 class="sec">Play Diagrams</h3><div id="pdlist"></div></section>
       <section id="courtsec" style="display:none"><h3 class="sec">Court Diagrams</h3><div class="courts" id="courts"></div></section>
       <div class="toolbar noprint" style="margin-top:22px"><button class="btn sm" id="print" type="button">Print</button></div>
     </div>
@@ -94,6 +97,19 @@
   if(d.teams&&d.teams.some(function(g){return g.players.length;})){ $('teamsec').style.display=''; $('teams').innerHTML=groups(d.teams,true); }
   if(d.out&&d.out.length){ $('teamsec').style.display=''; $('out').innerHTML='<b>Not at practice:</b> '+d.out.map(E).join(', '); }
   if(d.warm&&d.warm.some(function(g){return g.players.length;})){ $('warmsec').style.display=''; $('warm').innerHTML=groups(d.warm,false); }
+  if(Array.isArray(d.pdiag)&&d.pdiag.length){
+    $('pdsec').style.display='';
+    $('pdlist').innerHTML=d.pdiag.map(function(x){return '<div class="pdi"><h4>'+E(x.name||'Play')+'</h4>'+((x.cat||x.notes)?'<p>'+E((x.cat?x.cat+'. ':'')+(x.notes||''))+'</p>':'')+'<div class="bplay"></div></div>';}).join('');
+    document.querySelectorAll('#pdlist .pdi').forEach(function(div,i){
+      var pd=d.pdiag[i].pd, box=div.querySelector('.bplay'); if(!pd||!pd.steps) return;
+      pd.steps.forEach(function(s,si){
+        var f=document.createElement('figure'), cv=document.createElement('canvas');
+        cv.setAttribute('role','img'); cv.setAttribute('aria-label',(pd.name||'Play')+' diagram, step '+(si+1));
+        f.appendChild(cv); if(pd.steps.length>1){var c=document.createElement('figcaption'); c.textContent='Step '+(si+1); f.appendChild(c);} box.appendChild(f);
+        PlayView.render(cv,pd,si,null,true,true);
+      });
+    });
+  }
   var cc=d.courts||{}, ch,cf;
   if(cc.half!==undefined||cc.full!==undefined){ch=+cc.half||0;cf=+cc.full||0;} else if(cc.type==='full'){ch=0;cf=+cc.n||0;} else {ch=+cc.n||0;cf=0;}
   ch=Math.min(ch,8); cf=Math.min(cf,8);
